@@ -74,7 +74,7 @@ const SaasPage: React.FC = () => {
         <div className="flex items-center">
           <span className="text-2xl font-bold text-indigo-900">CLICKSTER</span>
         </div>
-        <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-700 transition duration-300">
+        <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">
           30 Day Free Trial
         </button>
       </header>
@@ -88,7 +88,7 @@ const SaasPage: React.FC = () => {
             <p className="text-lg lg:text-xl text-gray-700 mb-8">
               A single platform integrated with all traffic sources, with integrated AI.
             </p>
-            <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-indigo-700 transition duration-300">
+            <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
               Try for free for one month
             </button>
           </div>
@@ -101,8 +101,7 @@ const SaasPage: React.FC = () => {
       <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Key Features & Integrations</h2>
-          <div className="w-full"> {/* Changed to full width */}
-            <h3 className="text-2xl font-semibold mb-4">Supported Platforms</h3>
+          <div className="w-full">
             <div className="w-[80%] mx-auto">
               <Marquee className="py-4 rounded-lg shadow-md bg-white">
                 {[
@@ -153,7 +152,7 @@ const SaasPage: React.FC = () => {
                 <li>Predictive analytics for campaign performance</li>
                 <li>Real-time adjustments for maximum efficiency</li>
               </ul>
-              <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-indigo-700 transition duration-300">
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
                 Explore AI Features
               </button>
             </div>
@@ -161,7 +160,7 @@ const SaasPage: React.FC = () => {
               <img
                 src="/assets/ai-ilustration-marketing-1024x663.webp"
                 alt="AI-powered marketing illustration"
-                className="rounded-lg shadow-lg w-full h-auto"
+                className="rounded-lg w-full h-auto"
               />
             </div>
           </div>
