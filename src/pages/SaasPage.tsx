@@ -444,67 +444,85 @@ const SaasPage: React.FC = () => {
       </section>
 
       <section className="bg-white py-16">
-        <div className="container mx-auto px-4">
+        <div className="container-fluid px-0">
           <h2 className="text-4xl font-bold text-gray-900 text-center mb-8">Connections & Integrations</h2>
-          <div className="w-full">
-            <div className="w-[80%] mx-auto rounded-lg shadow-md bg-white overflow-hidden">
-              <Marquee className="py-4">
+          <div className="w-full overflow-hidden">
+            <div className="w-full relative">
+              {/* Static Intro Mockup */}
+              <div className="absolute left-0 top-0 z-10 py-4">
+                <IntroMockup
+                  title="Traffic source Integrations"
+                  description="Manage campaign settings & creatives for all your traffic sources."
+                  cta="See All Traffic Sources"
+                />
+              </div>
+              
+              {/* Scrolling Marquee */}
+              <Marquee className="pl-[300px]">
                 {[
-                  { name: 'Ads Builder', logo: null, isIntro: true },
-                  { name: 'MGID', logo: '/assets/trafficsources/mgid.png' },
-                  { name: 'Taboola', logo: '/assets/trafficsources/taboola.png' },
-                  { name: 'RevContent', logo: '/assets/trafficsources/revcontent.png' },
-                  { name: 'Outbrain', logo: '/assets/trafficsources/outbrain.png' },
+                  { name: 'Taboola', logo: '/assets/trafficsources/icons/taboola.png' },
+                  { name: 'Outbrain', logo: '/assets/trafficsources/icons/outbrain.png' },
+                  { name: 'Mediago', logo: '/assets/trafficsources/icons/mediago.png' },
+                  { name: 'MGID', logo: '/assets/trafficsources/icons/mgid.png' },
+                  { name: 'RevContent', logo: '/assets/trafficsources/icons/revcontent.png' },
+                  { name: 'Bing Ads', logo: '/assets/trafficsources/icons/bing.png' },
+                  { name: 'Google Ads', logo: '/assets/trafficsources/icons/googleads.webp' },
+                  { name: 'Instagram Ads', logo: '/assets/trafficsources/icons/instagram.png' },
+                  { name: 'Meta (Facebook) Ads', logo: '/assets/trafficsources/icons/meta.png' },
+                  { name: 'TikTok Ads', logo: '/assets/trafficsources/icons/tiktok.png' },
                 ].map((source, index) => (
-                  <div key={index} className="flex items-center space-x-8 mx-4">
-                    {source.isIntro ? (
-                      <IntroMockup
-                        title="Welcome to Ads Builder"
-                        description="Create high-converting ads for multiple platforms in seconds"
-                        cta="Get Started"
-                      />
-                    ) : (
-                      <AdMockup
-                        title={`${source.name} Ads`}
-                        description={`Build highly converting ads in seconds for ${source.name}`}
-                        cta="Learn More"
-                        logoSrc={source.logo}
-                        logoAlt={`${source.name} logo`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </Marquee>
-
-              {/* New Marquee with reversed order and different traffic sources */}
-              <Marquee className="py-4 border-t border-gray-200" reverse={true}>
-                {[
-                  { name: 'Traffic Analysis', logo: null, isIntro: true },
-                  { name: 'Google Ads', logo: '/assets/google-ads.png' },
-                  { name: 'Facebook Ads', logo: '/assets/facebook-ads.png' },
-                  { name: 'TikTok Ads', logo: '/assets/tiktok-ads.png' },
-                  { name: 'Bing Ads', logo: '/assets/bing-ads.png' },
-                ].reverse().map((source, index) => (
-                  <div key={index} className="flex items-center space-x-8 mx-4">
-                    {source.isIntro ? (
-                      <IntroMockup
-                        title="Traffic Analysis Tools"
-                        description="Analyze and optimize your ad performance across platforms"
-                        cta="Explore Tools"
-                      />
-                    ) : (
-                      <AdMockup
-                        title={`${source.name}`}
-                        description={`Optimize your ${source.name} campaigns with our advanced tools`}
-                        cta="Analyze Now"
-                        logoSrc={source.logo}
-                        logoAlt={`${source.name} logo`}
-                      />
-                    )}
+                  <div key={index} className="flex-shrink-0 mx-4">
+                    <AdMockup
+                      title={`${source.name} Ads`}
+                      description={`Build highly converting ads in seconds for ${source.name}`}
+                      cta="Learn More"
+                      logoSrc={source.logo}
+                      logoAlt={`${source.name} logo`}
+                    />
                   </div>
                 ))}
               </Marquee>
             </div>
+
+            
+
+            
+
+            {/* Second Marquee */}
+            <div className="w-full relative mt-8">
+              <Marquee className="pr-[300px]" reverse={true}>
+                {[
+                  { name: 'Cake Marketing', logo: '/assets/affiliatenetworks/icons/cake.jpg' },
+                  { name: 'Everflow', logo: '/assets/affiliatenetworks/icons/everflow.png' },
+                  { name: 'Clickbooth', logo: '/assets/affiliatenetworks/icons/clickbooth.jpg' },
+                  { name: 'DMS', logo: '/assets/affiliatenetworks/icons/dmsicon.png' },
+                  { name: 'Hitpath', logo: '/assets/affiliatenetworks/icons/hitpath.png' },
+                  { name: 'Metabase', logo: '/assets/affiliatenetworks/icons/metabase.svg' },
+                
+                ].map((source, index) => (
+                  <div key={index} className="flex-shrink-0 mx-4">
+                    <AdMockup
+                      title={`${source.name}`}
+                      description={`Optimize your ${source.name} campaigns with our advanced tools`}
+                      cta="Analyze Now"
+                      logoSrc={source.logo}
+                      logoAlt={`${source.name} logo`}
+                    />
+                  </div>
+                ))}
+              </Marquee>
+              
+              {/* Static Intro Mockup on the right */}
+              <div className="absolute right-0 top-0 z-10 py-4 h-full"> {/* Added h-full */}
+                <IntroMockup
+                  title="Analytics Integrations"
+                  description="Connect and analyze data from all your marketing channels."
+                  cta="Explore Analytics"
+                />
+              </div>
+            </div>
+
+            
           </div>
         </div>
       </section>

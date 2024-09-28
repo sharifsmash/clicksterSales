@@ -4,7 +4,6 @@ import { cn } from '../../lib/utils';
 interface MarqueeProps {
   className?: string;
   reverse?: boolean;
-  pauseOnHover?: boolean;
   vertical?: boolean;
   children: React.ReactNode;
   repeat?: number;
@@ -13,7 +12,6 @@ interface MarqueeProps {
 export const Marquee: React.FC<MarqueeProps> = ({
   className,
   reverse = false,
-  pauseOnHover = false,
   vertical = false,
   children,
   repeat = 2,
@@ -28,10 +26,10 @@ export const Marquee: React.FC<MarqueeProps> = ({
     >
       <div
         className={cn(
-          'flex min-w-full shrink-0 gap-[--gap] py-4 animate-marquee',
+          'flex min-w-full shrink-0 gap-[--gap] py-4',
+          'animate-marquee',
           vertical && 'flex-col',
-          reverse && 'direction-reverse',
-          pauseOnHover && 'pause-on-hover'
+          reverse && 'direction-reverse'
         )}
       >
         {Array(repeat)

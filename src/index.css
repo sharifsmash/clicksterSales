@@ -2,7 +2,8 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* Your custom styles go here */@keyframes marquee {
+/* Your custom styles go here */
+@keyframes marquee {
   from {
     transform: translateX(0);
   }
@@ -11,14 +12,50 @@
   }
 }
 
+@keyframes marquee-reverse {
+  from {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .animate-marquee {
   animation: marquee var(--duration) linear infinite;
 }
 
 .direction-reverse {
-  animation-direction: reverse;
+  animation: marquee-reverse var(--duration) linear infinite;
 }
 
-.pause-on-hover:hover {
-  animation-play-state: paused;
+/* Style for the static intro mockup */
+.absolute.left-0.top-0.z-10,
+.absolute.right-0.top-0.z-10 {
+  background-color: #ffffff; /* White background */
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 100%; /* Ensure full height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Ensure the scrolling content fades into the static element on the left */
+.pl-\[300px\] {
+  mask-image: linear-gradient(to right, white 280px, black 300px);
+  -webkit-mask-image: linear-gradient(to right, white 280px, black 300px);
+}
+
+/* Ensure the scrolling content fades into the static element on the right */
+.pr-\[300px\] {
+  mask-image: linear-gradient(to left, white 280px, black 300px);
+  -webkit-mask-image: linear-gradient(to left, white 280px, black 300px);
+}
+
+/* Add a fade effect to both sides */
+.overflow-hidden {
+  mask-image: linear-gradient(to right, white, black 50px, black calc(100% - 50px), white 100%);
+  -webkit-mask-image: linear-gradient(to right, white, black 50px, black calc(100% - 50px), white 100%);
 }

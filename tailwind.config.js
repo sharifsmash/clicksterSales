@@ -10,7 +10,9 @@ module.exports = {
   		},
   		animation: {
   			'border-beam': 'border-beam calc(var(--duration)*1s) infinite linear',
-  			shine: 'shine 3s ease-in-out infinite'
+  			shine: 'shine 3s ease-in-out infinite',
+            marquee: 'marquee var(--duration) linear infinite',
+            'marquee-slow': 'marquee calc(var(--duration) * 5) linear infinite',
   		},
   		keyframes: {
   			'border-beam': {
@@ -27,7 +29,11 @@ module.exports = {
   					'background-position': '0% 0%',
   					transform: 'translateX(100%)'
   				}
-  			}
+  			},
+            marquee: {
+                '0%': { transform: 'translateX(0)' },
+                '100%': { transform: 'translateX(calc(-100% - var(--gap)))' },
+            },
   		}
   	}
   },
