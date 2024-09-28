@@ -323,7 +323,7 @@ const SaasPage: React.FC = () => {
           </div>
 
           {/* Subsection 1: Campaign Overview */}
-          <div className="flex flex-col lg:flex-row items-center justify-between mb-12">
+          <div className="flex flex-col lg:flex-row items-center justify-between -mb-1">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
               <img 
                 src="/assets/commandcenter/commandcenter.png" 
@@ -333,17 +333,21 @@ const SaasPage: React.FC = () => {
             </div>
             <div className="lg:w-1/2 lg:pl-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Complete Campaign Overview</h3>
-              <p className="text-lg text-gray-700 mb-6">
-                Get a comprehensive view of your campaigns across multiple traffic sources. Manage and track all your campaigns in one place, no matter the traffic source - Outbrain, Taboola, MGID, Google, Facebook, TikTok, native ads, and more.
+              <p className="text-lg text-gray-700 mb-4">
+                <strong>When we say launch, we mean everything</strong>—<strong>campaigns, ads, landing pages, and offers</strong>, all at once.
               </p>
-              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+              <p className="text-lg text-gray-700 mb-4">
+                Welcome to your <strong>ultimate marketing control hub</strong>. With the <strong>ClicksterPro Command Center</strong>, every campaign is right at your fingertips. This centralized platform gives you the power to <strong>launch, track, optimize, and scale</strong> your marketing efforts across multiple traffic sources—all from a single dashboard.
+              </p>
+              
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
                 Explore Dashboard
               </button>
             </div>
           </div>
 
           {/* Subsection 2: Creative Management */}
-          <div className="flex flex-col lg:flex-row-reverse items-center justify-between mb-12">
+          <div className="flex flex-col lg:flex-row-reverse items-center justify-between -mb-1 mt-12">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
               <img 
                 src="/assets/commandcenter/creatives.png"
@@ -353,14 +357,14 @@ const SaasPage: React.FC = () => {
             </div>
             <div className="lg:w-1/2 lg:pr-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Turbocharge Your Ad Creation: Generate 100's of Ads in Just Seconds!</h3>
-              <p className="text-lg text-gray-700 mb-6">
+              <p className="text-lg text-gray-700 mb-4">
                 Say goodbye to hours of manual ad creation. Unleash powerful automation and get ready-to-launch ads at scale—instantly.
               </p>
               <p className="text-lg text-gray-700 mb-6">
                 Tired of spending endless hours designing individual ads? Clickster Pro lets you create hundreds of personalized ads in seconds with our powerful, automated ad builder. Whether you're running campaigns on Facebook, Google, or TikTok, our platform helps you launch high-quality ads at scale, saving you valuable time while driving better performance.
               </p>
-              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
-                Manage Creatives
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
+                See How It Works
               </button>
             </div>
           </div>
@@ -560,8 +564,23 @@ const SaasPage: React.FC = () => {
       </section>
 
       {/* New Product Features Section */}
-      <section className="bg-gray-100 py-16">
-        <div className="container mx-auto px-4">
+      <section className="relative py-16 overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-50 to-white"></div>
+        
+        {/* Background SVG pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path d="M0,1000 C300,800 700,900 1000,1000" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+            <path d="M0,800 C200,700 800,750 1000,800" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+            <path d="M0,600 C500,500 500,700 1000,600" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+            <path d="M0,400 C200,300 800,350 1000,400" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+            <path d="M0,200 C300,100 700,150 1000,200" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+            <path d="M0,0 C200,-50 800,50 1000,0" fill="none" stroke="rgba(147,51,234,0.3)" strokeWidth="2" />
+          </svg>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               We think our product is hands-down the best on

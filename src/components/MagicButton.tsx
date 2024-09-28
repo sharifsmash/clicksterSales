@@ -30,11 +30,10 @@ const MagicButton: React.FC<MagicButtonProps> = ({ children }) => {
           className="absolute -top-8 -left-8 w-56 object-cover rounded-lg shadow-lg"
           style={{ rotate: rotateImages, y: translateY }}
         />
-        
         <motion.img
-          src="/assets/login.png"
-          alt="Login"
-          className="absolute -bottom-8 left-1/4 w-56 object-cover rounded-lg shadow-lg"
+          src="/assets/automation.png"
+          alt="Automation"
+          className="absolute -bottom-8 left-[calc(25%-80px)] w-80 object-cover rounded-lg shadow-lg"
           style={{ rotate: rotateImages, y: translateY }}
         />
         
