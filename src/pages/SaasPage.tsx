@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Marquee } from '../components/magicui/Marquee';
 import { AnimatedList } from '../components/magicui/animated-list';
 import MagicButton from '../components/MagicButton';
@@ -147,8 +147,8 @@ const Footer: React.FC = () => (
         </div>
       </div>
       <div className="mt-12 flex justify-end space-x-4">
-        <img src="/path-to-app-store-badge.png" alt="Download on the App Store" className="h-10" />
-        <img src="/path-to-google-play-badge.png" alt="Get it on Google Play" className="h-10" />
+        <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-10" />
+        <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-10" />
       </div>
     </div>
   </footer>
@@ -232,6 +232,25 @@ const SaasPage: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isYearlyPricing, setIsYearlyPricing] = useState(true);
 
+  const typeAnimationRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const applyGradient = () => {
+      if (typeAnimationRef.current) {
+        typeAnimationRef.current.style.backgroundImage = 'linear-gradient(45deg, #8B5CF6, #3B82F6)';
+        typeAnimationRef.current.style.webkitBackgroundClip = 'text';
+        typeAnimationRef.current.style.backgroundClip = 'text';
+        typeAnimationRef.current.style.color = 'transparent';
+      }
+    };
+
+    // Apply gradient initially and after each animation cycle
+    applyGradient();
+    const intervalId = setInterval(applyGradient, 8000); // 8000ms = total duration of the animation cycle
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const landingPageFeatures = [
     {
       title: "Create Pages without Code",
@@ -270,9 +289,9 @@ const SaasPage: React.FC = () => {
         </button>
       </header>
 
-      <main className="container mx-auto px-4 pt-16 pb-16 relative z-20 -mt-12">
+      <main className="container mx-auto px-4 pt-16 pb-28 relative z-20 -mt-12"> {/* Changed pb-32 to pb-28 */}
         <div className="flex flex-col lg:flex-row items-start justify-between">
-          <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[15px]"> {/* Added pt-[15px] for 15px top padding */}
+          <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[65px]">
             <div className="text-[2.7rem] font-bold leading-tight mb-4">
               <TypeAnimation
                 sequence={[
@@ -288,7 +307,8 @@ const SaasPage: React.FC = () => {
                 wrapper="span"
                 speed={50}
                 repeat={Infinity}
-                style={{ color: '#0061c8' }}
+                ref={typeAnimationRef}
+                className="inline-block"
               />
               <br />
               <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
@@ -309,7 +329,7 @@ const SaasPage: React.FC = () => {
       {/* Command Center Section */}
       <section className="relative py-16 overflow-hidden bg-gray-100">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-300/10 via-pink-300/10 to-blue-300/10"></div>
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="container mx-auto px-4 relative z-10 -mt-[15px]"> {/* Added -mt-[15px] */}
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-1">
               YOUR <span className="text-black">CAMPAIGN</span>
@@ -396,19 +416,19 @@ const SaasPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div className="lg:w-1/2 order-2 lg:order-1">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
                 AI-Powered Marketing Solutions
               </h2>
               <p className="text-lg text-gray-700 mb-6">
                 Harness the power of artificial intelligence to revolutionize your marketing campaigns. Our platform uses cutting-edge AI technology to optimize your ad performance, target the right audience, and maximize your ROI.
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-8">
+              <ul className="list-disc list-inside text-lg text-gray-700 mb-8">
                 <li>Automated ad creation and optimization</li>
                 <li>Intelligent audience targeting</li>
                 <li>Predictive analytics for campaign performance</li>
                 <li>Real-time adjustments for maximum efficiency</li>
               </ul>
-              <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
                 Explore AI Features
               </button>
             </div>
@@ -425,7 +445,7 @@ const SaasPage: React.FC = () => {
 
       <section className="bg-white py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Connections & Integrations</h2>
+          <h2 className="text-4xl font-bold text-gray-900 text-center mb-8">Connections & Integrations</h2>
           <div className="w-full">
             <div className="w-[80%] mx-auto rounded-lg shadow-md bg-white overflow-hidden">
               <Marquee className="py-4">
@@ -493,7 +513,7 @@ const SaasPage: React.FC = () => {
       <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Why top media buyers choose Clickster?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why top media buyers choose Clickster?</h2>
             <div className="inline-block bg-red-100 text-red-500 px-3 py-1 rounded-full text-sm font-semibold">
               Why Clickster
             </div>
@@ -531,7 +551,7 @@ const SaasPage: React.FC = () => {
       {/* Updated Landing Page Management section */}
       <section className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold mb-12 text-center">
+          <h2 className="text-4xl font-bold mb-12 text-center">
             Built in Landing Page Builder
             <br />
             <span className="text-purple-300">Fastest Loading Times in the Industry</span>
@@ -583,10 +603,10 @@ const SaasPage: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              We think our product is hands-down the best on
+              We think our product is hands-down the best on the market
             </h2>
             <p className="text-xl text-gray-700">
-              the market and our team of agile developers is constantly rolling out new releases.
+              Our team of agile developers is constantly rolling out new releases.
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
@@ -621,7 +641,7 @@ const SaasPage: React.FC = () => {
           cr={1}
         />
         <div className="container mx-auto px-4 relative z-10">
-          <h2 className="text-4xl font-bold text-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-900 text-center mb-8">
             Everything you need for best in class service
           </h2>
           <PricingToggle isYearly={isYearlyPricing} onToggle={() => setIsYearlyPricing(!isYearlyPricing)} />
