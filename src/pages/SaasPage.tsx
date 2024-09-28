@@ -3,6 +3,7 @@ import { Marquee } from '../components/magicui/Marquee';
 import { AnimatedList } from '../components/magicui/animated-list';
 import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
+import ShinyButton from "../components/magicui/shiny-button";
 
 import { DotPattern } from '../components/magicui/DotPattern';
 
@@ -155,7 +156,7 @@ const Footer: React.FC = () => (
 
 const LandingPageFeature: React.FC<{ 
   title: string; 
-  description: string; 
+  description: string;
   isSelected: boolean;
   onSelect: () => void;
   icon: string;
@@ -270,9 +271,9 @@ const SaasPage: React.FC = () => {
       </header>
 
       <main className="container mx-auto px-4 pt-16 pb-16 relative z-20 -mt-12">
-        <div className="flex flex-col lg:flex-row items-center justify-between">
-          <div className="lg:w-1/2 mb-8 lg:mb-0">
-            <div className="text-[2.7rem] font-bold leading-tight mb-4"> {/* Increased from 2.25rem to 2.7rem */}
+        <div className="flex flex-col lg:flex-row items-start justify-between">
+          <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[15px]"> {/* Added pt-[15px] for 15px top padding */}
+            <div className="text-[2.7rem] font-bold leading-tight mb-4">
               <TypeAnimation
                 sequence={[
                   'Ad management made easy.',
@@ -290,14 +291,14 @@ const SaasPage: React.FC = () => {
                 style={{ color: '#0061c8' }}
               />
               <br />
-              <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span> {/* Increased from 5xl (3rem) to 3.6rem */}
+              <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
             </div>
-            <p className="text-lg lg:text-xl text-gray-700 mb-8">
-              A single platform integrated with all traffic sources, with integrated AI.
+            <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-[calc(100%-40px)]">
+              A unified platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
             </p>
-            <button className="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
-              Try for free for one month
-            </button>
+            <div className="mt-10">
+              <ShinyButton className="text-lg px-10 py-4">Try for free for one month</ShinyButton>
+            </div>
           </div>
           <div className="lg:w-1/2">
             <MagicButton />
@@ -305,61 +306,82 @@ const SaasPage: React.FC = () => {
         </div>
       </main>
 
-      {/* New Centralized Creative Hub Section */}
-      <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-300/20 via-pink-300/20 to-blue-300/20"></div>
+      {/* Command Center Section */}
+      <section className="relative py-16 overflow-hidden bg-gray-100">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-300/10 via-pink-300/10 to-blue-300/10"></div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between">
-            <div className="lg:w-1/2 mb-8 lg:mb-0">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-1">
+              YOUR <span className="text-black">CAMPAIGN</span>
+            </h2>
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-teal-400 to-blue-500 text-transparent bg-clip-text">
+              Command Center
+            </h2>
+            <p className="text-xl text-gray-700 mt-4">
+              Take complete control of your marketing campaigns from one powerful dashboard.
+            </p>
+          </div>
+
+          {/* Subsection 1: Campaign Overview */}
+          <div className="flex flex-col lg:flex-row items-center justify-between mb-12">
+            <div className="lg:w-1/2 mb-2 lg:mb-0">
               <img 
                 src="/assets/commandcenter/commandcenter.png" 
                 alt="Command Center Dashboard" 
                 className="w-full max-w-2xl mx-auto rounded-lg shadow-xl"
               />
             </div>
-            <div className="lg:w-1/2">
-              <div className="text-center lg:text-left mb-12">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  YOUR <span className="text-black">CAMPAIGN</span>
-                </h2>
-                <h2 className="text-5xl font-bold bg-gradient-to-r from-teal-400 to-blue-500 text-transparent bg-clip-text">
-                  Command Center
-                </h2>
-                <p className="text-xl text-gray-700 mt-4">
-                  Take complete control of your marketing campaigns from one powerful dashboard.
-                </p>
-              </div>
-              <div className="max-w-xl mx-auto lg:mx-0">
-                <ul className="space-y-4 text-lg">
-                  <li className="flex items-start">
-                    <span className="text-teal-500 mr-2">•</span>
-                    <div>
-                      <strong>Get a complete overview of your campaigns across multiple traffic sources.</strong>
-                      <p className="text-gray-600 mt-1">
-                        Manage and track all your campaigns in one place, no matter the traffic source - Outbrain, Taboola, MGID, Google, Facebook, TikTok, native ads, and more.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-teal-500 mr-2">•</span>
-                    <div>
-                      <strong>Centralize your ads and metrics under one roof. Forget about shared Dropbox folders forever!</strong>
-                      <p className="text-gray-600 mt-1">
-                        Say goodbye to scattered files and ad assets. With centralized access to all your ads, landing pages, and metrics, everything you need is right here, ready to go.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-teal-500 mr-2">•</span>
-                    <div>
-                      <strong>Discover creative trends in real time by using our intuitive reports.</strong>
-                      <p className="text-gray-600 mt-1">
-                        With real-time data insights, you'll always be on top of the latest creative performance trends. Adjust on the fly and stay ahead of the competition.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
+            <div className="lg:w-1/2 lg:pl-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Complete Campaign Overview</h3>
+              <p className="text-lg text-gray-700 mb-6">
+                Get a comprehensive view of your campaigns across multiple traffic sources. Manage and track all your campaigns in one place, no matter the traffic source - Outbrain, Taboola, MGID, Google, Facebook, TikTok, native ads, and more.
+              </p>
+              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+                Explore Dashboard
+              </button>
+            </div>
+          </div>
+
+          {/* Subsection 2: Creative Management */}
+          <div className="flex flex-col lg:flex-row-reverse items-center justify-between mb-12">
+            <div className="lg:w-1/2 mb-2 lg:mb-0">
+              <img 
+                src="/assets/commandcenter/creatives.png"
+                alt="Creative Management" 
+                className="w-full max-w-2xl mx-auto"
+              />
+            </div>
+            <div className="lg:w-1/2 lg:pr-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Turbocharge Your Ad Creation: Generate 100's of Ads in Just Seconds!</h3>
+              <p className="text-lg text-gray-700 mb-6">
+                Say goodbye to hours of manual ad creation. Unleash powerful automation and get ready-to-launch ads at scale—instantly.
+              </p>
+              <p className="text-lg text-gray-700 mb-6">
+                Tired of spending endless hours designing individual ads? Clickster Pro lets you create hundreds of personalized ads in seconds with our powerful, automated ad builder. Whether you're running campaigns on Facebook, Google, or TikTok, our platform helps you launch high-quality ads at scale, saving you valuable time while driving better performance.
+              </p>
+              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+                Manage Creatives
+              </button>
+            </div>
+          </div>
+
+          {/* Subsection 3: Real-time Analytics */}
+          <div className="flex flex-col lg:flex-row items-center justify-between">
+            <div className="lg:w-1/2 mb-2 lg:mb-0">
+              <img 
+                src="/assets/commandcenter/analytics.png" 
+                alt="Real-time Analytics" 
+                className="w-full max-w-2xl mx-auto rounded-lg shadow-xl"
+              />
+            </div>
+            <div className="lg:w-1/2 lg:pl-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Real-time Performance Insights</h3>
+              <p className="text-lg text-gray-700 mb-6">
+                Discover creative trends in real time using our intuitive reports. With real-time data insights, you'll always be on top of the latest creative performance trends. Adjust on the fly and stay ahead of the competition.
+              </p>
+              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+                View Analytics
+              </button>
             </div>
           </div>
         </div>
@@ -405,10 +427,10 @@ const SaasPage: React.FC = () => {
               <Marquee className="py-4">
                 {[
                   { name: 'Ads Builder', logo: null, isIntro: true },
-                  { name: 'MGID', logo: '/assets/mgid.png' },
-                  { name: 'Taboola', logo: '/assets/taboola.png' },
-                  { name: 'RevContent', logo: '/assets/revcontent.png' },
-                  { name: 'Outbrain', logo: '/assets/outbrain.png' },
+                  { name: 'MGID', logo: '/assets/trafficsources/mgid.png' },
+                  { name: 'Taboola', logo: '/assets/trafficsources/taboola.png' },
+                  { name: 'RevContent', logo: '/assets/trafficsources/revcontent.png' },
+                  { name: 'Outbrain', logo: '/assets/trafficsources/outbrain.png' },
                 ].map((source, index) => (
                   <div key={index} className="flex items-center space-x-8 mx-4">
                     {source.isIntro ? (
@@ -505,7 +527,12 @@ const SaasPage: React.FC = () => {
       {/* Updated Landing Page Management section */}
       <section className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold mb-12">Powerful yet<br />Simple to use</h2>
+          <h2 className="text-5xl font-bold mb-12 text-center">
+            Built in Landing Page Builder
+            <br />
+            <span className="text-purple-300">Fastest Loading Times in the Industry</span>
+          </h2>
+
           <div className="flex flex-col lg:flex-row items-start justify-between">
             <div className="lg:w-1/2 mb-8 lg:mb-0">
               {landingPageFeatures.map((feature, index) => (
