@@ -314,7 +314,7 @@ const SaasPage: React.FC = () => {
               <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
             </div>
             <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-[calc(100%-40px)]">
-              A unified platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
+              A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
             </p>
             <div className="mt-10">
               <ShinyButton className="text-lg px-10 py-4">Try for free for one month</ShinyButton>
@@ -459,28 +459,70 @@ const SaasPage: React.FC = () => {
               
               {/* Scrolling Marquee */}
               <Marquee className="pl-[300px]">
-                {[
-                  { name: 'Taboola', logo: '/assets/trafficsources/icons/taboola.png' },
-                  { name: 'Outbrain', logo: '/assets/trafficsources/icons/outbrain.png' },
-                  { name: 'Mediago', logo: '/assets/trafficsources/icons/mediago.png' },
-                  { name: 'MGID', logo: '/assets/trafficsources/icons/mgid.png' },
-                  { name: 'RevContent', logo: '/assets/trafficsources/icons/revcontent.png' },
-                  { name: 'Bing Ads', logo: '/assets/trafficsources/icons/bing.png' },
-                  { name: 'Google Ads', logo: '/assets/trafficsources/icons/googleads.webp' },
-                  { name: 'Instagram Ads', logo: '/assets/trafficsources/icons/instagram.png' },
-                  { name: 'Meta (Facebook) Ads', logo: '/assets/trafficsources/icons/meta.png' },
-                  { name: 'TikTok Ads', logo: '/assets/trafficsources/icons/tiktok.png' },
-                ].map((source, index) => (
-                  <div key={index} className="flex-shrink-0 mx-4">
-                    <AdMockup
-                      title={`${source.name} Ads`}
-                      description={`Build highly converting ads in seconds for ${source.name}`}
-                      cta="Learn More"
-                      logoSrc={source.logo}
-                      logoAlt={`${source.name} logo`}
-                    />
-                  </div>
-                ))}
+                <div className="grid grid-flow-col auto-cols-max gap-5">
+                  {[
+                    { 
+                      name: 'Taboola', 
+                      logo: '/assets/trafficsources/icons/taboola.png',
+                      description: 'A content discovery and native advertising platform that helps advertisers reach audiences across premium publisher sites.'
+                    },
+                    { 
+                      name: 'Outbrain', 
+                      logo: '/assets/trafficsources/icons/outbrain.png',
+                      description: 'A native advertising platform that promotes content across a network of premium publishers to drive engagement and conversions.'
+                    },
+                    { 
+                      name: 'Mediago', 
+                      logo: '/assets/trafficsources/icons/mediago.png',
+                      description: 'A native advertising platform powered by Baidu, primarily focused on targeting global markets with performance-based advertising.'
+                    },
+                    { 
+                      name: 'MGID', 
+                      logo: '/assets/trafficsources/icons/mgid.png',
+                      description: 'A native advertising platform that connects advertisers with premium publishers, offering performance-driven ad campaigns.'
+                    },
+                    { 
+                      name: 'Revcontent', 
+                      logo: '/assets/trafficsources/icons/revcontent.png',
+                      description: 'A native advertising and content recommendation platform that helps advertisers reach targeted audiences with high engagement.'
+                    },
+                    { 
+                      name: 'Bing Ads', 
+                      logo: '/assets/trafficsources/icons/bing.png',
+                      description: 'A pay-per-click advertising platform for businesses to advertise on Bing\'s search engine and partner networks.'
+                    },
+                    { 
+                      name: 'Google Ads', 
+                      logo: '/assets/trafficsources/icons/googleads.webp',
+                      description: 'Google\'s pay-per-click advertising service that enables businesses to display ads on Google\'s search engine results and other partner websites.'
+                    },
+                    { 
+                      name: 'Instagram Ads', 
+                      logo: '/assets/trafficsources/icons/instagram.png',
+                      description: 'An advertising platform that allows businesses to run sponsored posts and stories within Instagram\'s social media feed.'
+                    },
+                    { 
+                      name: 'Meta (Facebook) Ads', 
+                      logo: '/assets/trafficsources/icons/meta.png',
+                      description: 'Meta\'s advertising platform that helps businesses target audiences across Facebook and its family of apps and services.'
+                    },
+                    { 
+                      name: 'TikTok Ads', 
+                      logo: '/assets/trafficsources/icons/tiktok.png',
+                      description: 'A social media advertising platform that allows businesses to create engaging video ads targeting TikTok\'s user base.'
+                    },
+                  ].map((source, index) => (
+                    <div key={index} className="flex-shrink-0 card-container">
+                      <AdMockup
+                        title={source.name}
+                        description={source.description}
+                        cta="Learn More"
+                        logoSrc={source.logo}
+                        logoAlt={`${source.name} logo`}
+                      />
+                    </div>
+                  ))}
+                </div>
               </Marquee>
             </div>
 
@@ -491,38 +533,61 @@ const SaasPage: React.FC = () => {
             {/* Second Marquee */}
             <div className="w-full relative mt-8">
               <Marquee className="pr-[300px]" reverse={true}>
-                {[
-                  { name: 'Cake Marketing', logo: '/assets/affiliatenetworks/icons/cake.jpg' },
-                  { name: 'Everflow', logo: '/assets/affiliatenetworks/icons/everflow.png' },
-                  { name: 'Clickbooth', logo: '/assets/affiliatenetworks/icons/clickbooth.jpg' },
-                  { name: 'DMS', logo: '/assets/affiliatenetworks/icons/dmsicon.png' },
-                  { name: 'Hitpath', logo: '/assets/affiliatenetworks/icons/hitpath.png' },
-                  { name: 'Metabase', logo: '/assets/affiliatenetworks/icons/metabase.svg' },
-                
-                ].map((source, index) => (
-                  <div key={index} className="flex-shrink-0 mx-4">
-                    <AdMockup
-                      title={`${source.name}`}
-                      description={`Optimize your ${source.name} campaigns with our advanced tools`}
-                      cta="Analyze Now"
-                      logoSrc={source.logo}
-                      logoAlt={`${source.name} logo`}
-                    />
-                  </div>
-                ))}
+                <div className="grid grid-flow-col auto-cols-max gap-5"> {/* Changed gap-4 to gap-5 */}
+                  {[
+                    { 
+                      name: 'Cake Marketing', 
+                      logo: '/assets/affiliatenetworks/icons/cake.jpg',
+                      description: 'A performance marketing platform that helps advertisers and networks track, manage, and optimize their marketing campaigns.'
+                    },
+                    { 
+                      name: 'Everflow', 
+                      logo: '/assets/affiliatenetworks/icons/everflow.png',
+                      description: 'A partner marketing platform that offers tracking, managing, and scaling affiliate, influencer, and partner programs.'
+                    },
+                    { 
+                      name: 'Clickbooth', 
+                      logo: '/assets/affiliatenetworks/icons/clickbooth.jpg',
+                      description: 'A performance-based CPA network focused on driving sales and leads for advertisers through their affiliate network.'
+                    },
+                    { 
+                      name: 'DMS', 
+                      logo: '/assets/affiliatenetworks/icons/dmsicon.png',
+                      description: 'A digital performance marketing company specializing in customer acquisition through digital media solutions.'
+                    },
+                    { 
+                      name: 'Hitpath', 
+                      logo: '/assets/affiliatenetworks/icons/hitpath.png',
+                      description: 'A robust affiliate tracking software platform that supports networks and advertisers in managing and optimizing campaigns.'
+                    },
+                    { 
+                      name: 'Metabase', 
+                      logo: '/assets/affiliatenetworks/icons/metabase.svg',
+                      description: 'An open-source business intelligence tool that allows users to ask questions about their data and gather insights without needing technical knowledge.'
+                    },
+                  ].map((source, index) => (
+                    <div key={index} className="flex-shrink-0 card-container"> {/* Removed mx-4 */}
+                      <AdMockup
+                        title={`${source.name}`}
+                        description={source.description}
+                        cta="Learn More"
+                        logoSrc={source.logo}
+                        logoAlt={`${source.name} logo`}
+                      />
+                    </div>
+                  ))}
+                </div>
               </Marquee>
               
               {/* Static Intro Mockup on the right */}
-              <div className="absolute right-0 top-0 z-10 py-4 h-full"> {/* Added h-full */}
+              <div className="absolute right-0 top-0 z-10 py-4 h-full">
                 <IntroMockup
-                  title="Analytics Integrations"
-                  description="Connect and analyze data from all your marketing channels."
+                  title="Affiliate Networks"
+                  description="Connect to your affiliate networks to pull conversions, payouts, and discover new offers."
                   cta="Explore Analytics"
                 />
               </div>
             </div>
-
-            
           </div>
         </div>
       </section>
@@ -531,37 +596,38 @@ const SaasPage: React.FC = () => {
       <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why top media buyers choose Clickster?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why the best agencies and media buyers choose Clickster?</h2>
             <div className="inline-block bg-red-100 text-red-500 px-3 py-1 rounded-full text-sm font-semibold">
               Why Clickster
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <WhyClicksterItem
-              icon="🔍"
-              title="Perfect attribution"
-              description="Experience 100% conversion and revenue matching right down to the ad or placement level. No more missing data, ever."
-            />
-            <WhyClicksterItem
-              icon="🎯"
-              title="Centralized tracking"
-              description="Monitor every channel in real-time from one dashboard: paid, organic, email, partnerships, and referrals."
-            />
-            <WhyClicksterItem
-              icon="🔌"
-              title="Top-tier CAPI"
-              description="Send your conversion and revenue data back to Facebook, Google, TikTok, Bing, and more, closing reporting gaps and enhancing algorithm accuracy."
-            />
-            <WhyClicksterItem
-              icon="🔗"
-              title="200+ integrations"
-              description="From ad and affiliate networks to e-com platforms, call trackers, and CRMs - integrate effortlessly to optimize your ad tracking."
-            />
-            <WhyClicksterItem
-              icon="🛡️"
-              title="Bypass iOS14 & ad blockers"
-              description="Clickster uses serve-to-serve & API integrations to bring hyper-accurate tracking and restore conversion data accuracy without data modelling or guess algorithms."
-            />
+          <WhyClicksterItem
+  icon="🔍"
+  title="Accurate Revenue Attribution"
+  description="Achieve precise conversion and revenue matching down to the individual ad or placement. Say goodbye to lost data."
+/>
+<WhyClicksterItem
+  icon="🎯"
+  title="Unified Channel Tracking"
+  description="Track all your marketing channels in real-time from one centralized dashboard: paid, organic, email, partnerships, and referrals."
+/>
+<WhyClicksterItem
+  icon="🔌"
+  title="Detailed Cost APIs"
+  description="Sync conversion and revenue data to Facebook, Google, TikTok, Bing, and more, ensuring complete transparency on ad spend, placements, and publishers."
+/>
+<WhyClicksterItem
+  icon="🔗"
+  title="Seamless Integrations"
+  description="Easily integrate with ad networks, affiliate platforms, e-commerce solutions, call trackers, and CRMs to supercharge your tracking efforts."
+/>
+<WhyClicksterItem
+  icon="🛡️"
+  title="Overcome iOS14 & Ad Blockers"
+  description="Leverage server-to-server and API integrations to ensure hyper-accurate tracking and restore conversion accuracy without relying on data models or guesswork."
+/>
+
           </div>
         </div>
       </section>

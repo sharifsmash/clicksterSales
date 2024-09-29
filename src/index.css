@@ -59,3 +59,28 @@
   mask-image: linear-gradient(to right, white, black 50px, black calc(100% - 50px), white 100%);
   -webkit-mask-image: linear-gradient(to right, white, black 50px, black calc(100% - 50px), white 100%);
 }
+
+/* Style for card containers */
+.card-container {
+  display: flex;
+  width: 280px; /* Reduced from 300px to account for the gap */
+  padding: 0 10px; /* Add padding to create space between cards */
+}
+
+/* Style for AdMockup components */
+.card-container > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%; /* Ensure the AdMockup takes full width of its container */
+}
+
+/* Ensure the description takes up remaining space */
+.card-container > div > p {
+  flex-grow: 1;
+}
+
+/* Remove the previous width declaration */
+/* .card-container {
+  width: 300px;
+} */
