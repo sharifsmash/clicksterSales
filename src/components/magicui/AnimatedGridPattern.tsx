@@ -30,7 +30,7 @@ const AnimatedGridPattern: React.FC<AnimatedGridPatternProps> = ({
     <svg
       className={cn('absolute inset-0', className)}
       width="100%"
-      height="100%"
+      height="150%"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
@@ -49,7 +49,7 @@ const AnimatedGridPattern: React.FC<AnimatedGridPatternProps> = ({
           />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#smallGrid)" />
+      <rect width="100%" height="150%" fill="url(#smallGrid)" />
       {Array.from({ length: numSquares }).map((_, i) => (
         <rect
           key={i}

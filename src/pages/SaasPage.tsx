@@ -281,58 +281,63 @@ const SaasPage: React.FC = () => {
   ];
   return (
     <div className="min-h-screen overflow-hidden relative">
-      
       <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center">
           <img
             src="/assets/clicksterlogo.png"
             alt="Clickster Logo"
-            className="h-10 w-auto" // Adjust the height (h-10) as needed
+            className="h-10 w-auto"
           />
         </div>
-        <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">
-          30 Day Free Trial
-        </button>
+        <ShinyButton className="text-lg px-6 py-2 w-auto">
+          Try for free for one month
+        </ShinyButton>
       </header>
 
-      <main className="container mx-auto px-4 pt-16 pb-28 relative -mt-12">
-        {/* Remove AnimatedGridPattern from here */}
-        
-        {/* Wrap content in a div with higher z-index */}
-        <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row items-start justify-between">
-            <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[65px]">
-              <div className="text-[2.7rem] font-bold leading-tight mb-4">
-                <TypeAnimation
-                  sequence={[
-                    'Ad management made easy.',
-                    2000,
-                    'Campaigns created effortlessly.',
-                    2000,
-                    'Data analyzed quickly.',
-                    2000,
-                    'Landing pages created in minutes.',
-                    2000,
-                  ]}
-                  wrapper="span"
-                  speed={50}
-                  repeat={Infinity}
-                  ref={typeAnimationRef}
-                  className="inline-block"
+      <main className="w-full px-4 pt-16 pb-28 relative -mt-12">
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-full mb-8 text-center">
+            <div className="text-[3.5rem] font-bold leading-tight mb-4 w-screen overflow-hidden">
+              <TypeAnimation
+                sequence={[
+                  'Ad management made easy.',
+                  2000,
+                  'Campaigns created effortlessly.',
+                  2000,
+                  'Data analyzed quickly.',
+                  2000,
+                  'Landing pages created in minutes.',
+                  2000,
+                ]}
+                wrapper="span"
+                speed={50}
+                repeat={Infinity}
+                ref={typeAnimationRef}
+                className="inline-block whitespace-nowrap"
+              />
+              <br />
+              <span className="text-[#1a202c] text-[4.0rem]">Scaling made simple.</span>
+            </div>
+            <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
+            </p>
+            <div className="mt-10">
+              <div className="flex w-full max-w-[600px] mt-4 mx-auto">
+                <input
+                  type="email"
+                  placeholder="Subscribe to our newsletter"
+                  className="flex-grow px-4 py-3 rounded-l-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 />
-                <br />
-                <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
-              </div>
-              <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-[calc(100%-40px)]">
-                A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
-              </p>
-              <div className="mt-10">
-                <ShinyButton className="text-lg px-10 py-4">Try for free for one month</ShinyButton>
+                <button className="bg-indigo-600 text-white font-semibold px-6 py-3 rounded-r-full hover:bg-indigo-700 transition duration-300">
+                  SUBSCRIBE
+                </button>
               </div>
             </div>
-            <div className="lg:w-1/2">
-              <MagicButton />
-            </div>
+          </div>
+
+          {/* Image content (2) */}
+          <div className="w-full max-w-4xl mt-[30px]"> {/* Added mt-[30px] here */}
+            <MagicButton />
           </div>
         </div>
       </main>
@@ -622,7 +627,7 @@ const SaasPage: React.FC = () => {
       <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why the best agencies and media buyers choose Clickster?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why do top agencies and media buyers choose Clickster?</h2>
             <div className="inline-block bg-red-100 text-red-500 px-3 py-1 rounded-full text-sm font-semibold">
               Why Clickster
             </div>

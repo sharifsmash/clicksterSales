@@ -12,15 +12,15 @@ const MagicButton: React.FC<MagicButtonProps> = ({ children }) => {
     offset: ["start end", "end start"]
   });
 
-  const rotateMain = useTransform(scrollYProgress, [0, 1], [0, 5]);
-  const rotateImages = useTransform(scrollYProgress, [0, 1], [0, -15]);
   const translateY = useTransform(scrollYProgress, [0, 1], [0, 30]);
+  const rotateImages = useTransform(scrollYProgress, [0, 1], [0, -15]);
+  const scaleMain = useTransform(scrollYProgress, [0, 1], [1, 1.25]); // Add this line for scaling
 
   return (
     <div ref={containerRef} className="relative w-full max-w-4xl mx-auto">
       <motion.div
         className="relative"
-        style={{ rotate: rotateMain, y: translateY }}
+        style={{ y: translateY, scale: scaleMain }} // Add scale here
       >
         <img src="/assets/Screen.png" alt="Main" className="w-full rounded-lg shadow-xl" />
         
