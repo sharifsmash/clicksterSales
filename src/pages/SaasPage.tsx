@@ -4,6 +4,7 @@ import { AnimatedList } from '../components/magicui/animated-list';
 import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
 import ShinyButton from "../components/magicui/shiny-button";
+// import Image from 'next/image';  // Remove this line
 
 import { DotPattern } from '../components/magicui/DotPattern';
 
@@ -282,7 +283,11 @@ const SaasPage: React.FC = () => {
       
       <header className="container mx-auto px-4 py-6 flex justify-between items-center">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-indigo-900">CLICKSTER</span>
+          <img
+            src="/assets/clicksterlogo.png"
+            alt="Clickster Logo"
+            className="h-10 w-auto" // Adjust the height (h-10) as needed
+          />
         </div>
         <button className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">
           30 Day Free Trial
@@ -443,9 +448,14 @@ const SaasPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section className="bg-white py-12">
         <div className="container-fluid px-0">
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-8">Connections & Integrations</h2>
+          <h2 className="text-4xl font-bold text-gray-900 text-center mb-4">Connections & Integrations</h2>
+          <p className="text-xl text-gray-700 mt-2">
+            <div className="text-center">
+              Take complete control of your marketing campaigns from one powerful dashboard.
+            </div>
+          </p>
           <div className="w-full overflow-hidden">
             <div className="w-full relative">
               {/* Static Intro Mockup */}
