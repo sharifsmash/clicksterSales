@@ -7,6 +7,7 @@ import ShinyButton from "../components/magicui/shiny-button";
 // import Image from 'next/image';  // Remove this line
 
 import { DotPattern } from '../components/magicui/DotPattern';
+import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
 
 interface AdMockupProps {
   title: string;
@@ -279,9 +280,9 @@ const SaasPage: React.FC = () => {
     }
   ];
   return (
-    <div className="min-h-screen overflow-hidden">
+    <div className="min-h-screen overflow-hidden relative">
       
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center">
           <img
             src="/assets/clicksterlogo.png"
@@ -294,39 +295,44 @@ const SaasPage: React.FC = () => {
         </button>
       </header>
 
-      <main className="container mx-auto px-4 pt-16 pb-28 relative z-20 -mt-12"> {/* Changed pb-32 to pb-28 */}
-        <div className="flex flex-col lg:flex-row items-start justify-between">
-          <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[65px]">
-            <div className="text-[2.7rem] font-bold leading-tight mb-4">
-              <TypeAnimation
-                sequence={[
-                  'Ad management made easy.',
-                  2000,
-                  'Campaigns created effortlessly.',
-                  2000,
-                  'Data analyzed quickly.',
-                  2000,
-                  'Landing pages created in minutes.',
-                  2000,
-                ]}
-                wrapper="span"
-                speed={50}
-                repeat={Infinity}
-                ref={typeAnimationRef}
-                className="inline-block"
-              />
-              <br />
-              <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
+      <main className="container mx-auto px-4 pt-16 pb-28 relative -mt-12">
+        {/* Remove AnimatedGridPattern from here */}
+        
+        {/* Wrap content in a div with higher z-index */}
+        <div className="relative z-10">
+          <div className="flex flex-col lg:flex-row items-start justify-between">
+            <div className="lg:w-1/2 mb-8 lg:mb-0 pt-[65px]">
+              <div className="text-[2.7rem] font-bold leading-tight mb-4">
+                <TypeAnimation
+                  sequence={[
+                    'Ad management made easy.',
+                    2000,
+                    'Campaigns created effortlessly.',
+                    2000,
+                    'Data analyzed quickly.',
+                    2000,
+                    'Landing pages created in minutes.',
+                    2000,
+                  ]}
+                  wrapper="span"
+                  speed={50}
+                  repeat={Infinity}
+                  ref={typeAnimationRef}
+                  className="inline-block"
+                />
+                <br />
+                <span className="text-[#1a202c] text-[3.6rem]">Scaling made simple.</span>
+              </div>
+              <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-[calc(100%-40px)]">
+                A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
+              </p>
+              <div className="mt-10">
+                <ShinyButton className="text-lg px-10 py-4">Try for free for one month</ShinyButton>
+              </div>
             </div>
-            <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-[calc(100%-40px)]">
-              A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
-            </p>
-            <div className="mt-10">
-              <ShinyButton className="text-lg px-10 py-4">Try for free for one month</ShinyButton>
+            <div className="lg:w-1/2">
+              <MagicButton />
             </div>
-          </div>
-          <div className="lg:w-1/2">
-            <MagicButton />
           </div>
         </div>
       </main>
@@ -334,7 +340,17 @@ const SaasPage: React.FC = () => {
       {/* Command Center Section */}
       <section className="relative py-16 overflow-hidden bg-gray-100">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-300/10 via-pink-300/10 to-blue-300/10"></div>
-        <div className="container mx-auto px-4 relative z-10 -mt-[15px]"> {/* Added -mt-[15px] */}
+        
+        {/* Add AnimatedGridPattern here */}
+        <AnimatedGridPattern
+          numSquares={50}
+          maxOpacity={0.05}
+          duration={5}
+          repeatDelay={0}
+          className="absolute inset-0 [mask-image:radial-gradient(600px_circle_at_center,white,transparent)] inset-x-0 inset-y-[-30%] h-[150%] skew-y-12"
+        />
+        
+        <div className="container mx-auto px-4 relative z-10 -mt-[15px]">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-1">
               YOUR <span className="text-black">CAMPAIGN</span>
@@ -394,19 +410,19 @@ const SaasPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Subsection 3: Real-time Analytics */}
+          {/* Subsection 3: Mobile App */}
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
               <img 
-                src="/assets/commandcenter/analytics.png" 
+                src="/assets/commandcenter/mobileapp.png" 
                 alt="Real-time Analytics" 
-                className="w-full max-w-2xl mx-auto rounded-lg shadow-xl"
+                className="w-full max-w-2xl mx-auto max-h-[800px] object-contain"
               />
             </div>
             <div className="lg:w-1/2 lg:pl-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Real-time Performance Insights</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Manage millions of dollars in ad spend on the go</h3>
               <p className="text-lg text-gray-700 mb-6">
-                Discover creative trends in real time using our intuitive reports. With real-time data insights, you'll always be on top of the latest creative performance trends. Adjust on the fly and stay ahead of the competition.
+              Clickster Pro's mobile app allows you to manage your campaigns on the go. You can approve creatives, track performance, and make changes to your campaigns from your phone.
               </p>
               <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
                 View Analytics
