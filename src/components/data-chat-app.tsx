@@ -5,13 +5,24 @@ import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { FaPercent, FaMousePointer, FaDollarSign, FaChartLine } from 'react-icons/fa';
-import mockData from '../mockdata.json';
+import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat';
+import { db, auth } from '../firebase';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { signInAnonymously } from 'firebase/auth';
 
 // Update the import statement
-interface CampaignData {
-  id: string;
-  name: string;
-  owner: string;
+interface OSData {
+  os: string;
+  metrics: MetricsData;
+}
+
+interface RegionData {
+  region: string;
+  metrics: MetricsData;
+}
+
+interface MetricsData {
   clicks: number;
   offerClicks: number;
   ctr: number;
@@ -25,38 +36,13 @@ interface CampaignData {
   cpc: number;
   ecpa: number;
   avgPayout: number;
-  by_os: {
-    name: string;
-    clicks: number;
-    offerClicks: number;
-    ctr: number;
-    cvrs: number;
-    cr: number;
-    revenue: number;
-    spent: number;
-    profit: number;
-    roi: number;
-    epc: number;
-    cpc: number;
-    ecpa: number;
-    avgPayout: number;
-  }[];
-  by_region: {
-    name: string;
-    clicks: number;
-    offerClicks: number;
-    ctr: number;
-    cvrs: number;
-    cr: number;
-    revenue: number;
-    spent: number;
-    profit: number;
-    roi: number;
-    epc: number;
-    cpc: number;
-    ecpa: number;
-    avgPayout: number;
-  }[];
+}
+
+interface CampaignData {
+  id: string;
+  name: string;
+  owner: string;
+  metrics: MetricsData;
 }
 
 interface Message {
@@ -94,101 +80,165 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatHeight, setChatHeight] = useState('30px'); // Start with a 30px height
+  const [chatHeight, setChatHeight] = useState('30px');
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  const calculateAggregatedData = (campaigns: CampaignData[]) => {
-    const aggregatedData = campaigns.reduce((acc, campaign) => {
-      acc.clicks += campaign.clicks;
-      acc.offerClicks += campaign.offerClicks;
-      acc.cvrs += campaign.cvrs;
-      acc.revenue += campaign.revenue;
-      acc.spent += campaign.spent;
-      acc.profit += campaign.profit;
-      return acc;
-    }, { clicks: 0, offerClicks: 0, cvrs: 0, revenue: 0, spent: 0, profit: 0 });
+  const openai = new OpenAI({
+    apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true // Add this if you're calling the API from the browser
+  });
 
-    const ctr = (aggregatedData.offerClicks / aggregatedData.clicks) * 100;
-    const cr = (aggregatedData.cvrs / aggregatedData.clicks) * 100;
-    const roi = (aggregatedData.profit / aggregatedData.spent) * 100;
-    const cpc = aggregatedData.spent / aggregatedData.clicks;
-    const avgPayout = aggregatedData.revenue / aggregatedData.cvrs;
+  const calculateAggregatedData = (data: any): AggregatedData => {
+    if (!data || !data.metrics) {
+      console.error("Invalid data structure for aggregatedData calculation:", data);
+      return {
+        clicks: 0,
+        cvrs: 0,
+        revenue: 0,
+        spent: 0,
+        profit: 0,
+        conversionRate: 0,
+        clickThroughRate: 0,
+        costPerClick: 0,
+        roas: 0,
+        avgPayout: 0
+      };
+    }
 
+    const metrics = data.metrics;
+    const revenue = metrics.revenue || 0;
+    const spent = metrics.spent || 0;
+    
     return {
-      clicks: aggregatedData.clicks,
-      cvrs: aggregatedData.cvrs,
-      revenue: aggregatedData.revenue,
-      spent: aggregatedData.spent,
-      profit: aggregatedData.profit,
-      conversionRate: cr,
-      clickThroughRate: ctr,
-      costPerClick: cpc,
-      roas: roi,
-      avgPayout: avgPayout
+      clicks: metrics.clicks || 0,
+      cvrs: metrics.cvrs || 0,
+      revenue: revenue,
+      spent: spent,
+      profit: metrics.profit || 0,
+      conversionRate: metrics.cr || 0,
+      clickThroughRate: metrics.ctr || 0,
+      costPerClick: metrics.cpc || 0,
+      roas: spent > 0 ? (revenue / spent) * 100 : 0, // Calculate ROAS as a percentage
+      avgPayout: metrics.avgPayout || 0
     };
   };
 
-  const generateResponse = (input: string, campaigns: CampaignData[]): ResponseData => {
-    const lowercaseInput = input.toLowerCase();
-    let aggregatedData: AggregatedData;
-    let response = "";
-    let campaignName: string | undefined;
-    let dataType: 'all' | 'regional' | 'os' = 'all';
-    let chartData: { name: string; value: number; avgPayout: number }[] | undefined;
-
-    if (lowercaseInput.includes('regional') || lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
-      campaignName = getCampaignName(lowercaseInput, campaigns);
-      const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
-      aggregatedData = calculateAggregatedData([campaign]);
-      dataType = 'regional';
-      chartData = campaign.by_region.map(region => ({ 
-        name: region.name, 
-        value: region.revenue,
-        avgPayout: region.avgPayout
-      }));
+  const fetchOverallStats = async () => {
+    try {
+      console.log("Fetching overall stats...");
+      const q = query(collection(db, 'overall_stats'), orderBy('dateRange', 'desc'), limit(1));
+      const querySnapshot = await getDocs(q);
       
-      response = `Regional data for ${campaignName} campaign:\n\n`;
-      campaign.by_region.forEach(region => {
-        response += `- ${region.name}: ${formatNumber(region.clicks)} clicks, ${region.cr.toFixed(2)}% CR, $${formatNumber(region.revenue)} revenue, $${formatNumber(region.profit)} profit\n`;
-      });
-    } else if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
-      campaignName = getCampaignName(lowercaseInput, campaigns);
-      const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
-      aggregatedData = calculateAggregatedData([campaign]);
-      dataType = 'os';
-      chartData = campaign.by_os.map(os => ({ 
-        name: os.name, 
-        value: os.revenue,
-        avgPayout: os.avgPayout
-      }));
-      
-      response = `OS breakdown for ${campaignName} campaign:\n\n`;
-      campaign.by_os.forEach(os => {
-        response += `${os.name}: ${formatNumber(os.clicks)} clicks, ${os.cr.toFixed(2)}% CR, $${formatNumber(os.revenue)} revenue, $${formatNumber(os.profit)} profit\n`;
-      });
-    } else {
-      aggregatedData = calculateAggregatedData(campaigns);
-      chartData = campaigns.map(campaign => ({
-        name: campaign.name,
-        value: campaign.revenue,
-        avgPayout: campaign.avgPayout
-      }));
-      
-      response = `Overview of all campaigns:\n\n` +
-        `Clicks: ${formatNumber(aggregatedData.clicks, true)}\n` +
-        `CTR: ${formatNumber(aggregatedData.clickThroughRate)}%\n` +
-        `Conversions: ${formatNumber(aggregatedData.cvrs, true)}\n` +
-        `CR: ${formatNumber(aggregatedData.conversionRate)}%\n` +
-        `Revenue: ${formatNumberWithColor(aggregatedData.revenue, '$')}\n` +
-        `Spent: ${formatNumberWithColor(-aggregatedData.spent, '$')}\n` +
-        `Profit: ${formatNumberWithColor(aggregatedData.profit, '$')}\n` +
-        `ROI: ${formatNumberWithColor(aggregatedData.roas)}%\n` +
-        `CPC: ${formatNumberWithColor(-aggregatedData.costPerClick, '$')}\n` +
-        `Avg. Payout: ${formatNumberWithColor(aggregatedData.avgPayout, '$')}`;
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        console.log("Fetched overall stats:", data);
+        return data;
+      }
+      console.log("No overall stats found");
+      return null;
+    } catch (error) {
+      console.error("Error fetching overall stats:", error);
+      throw error;
     }
+  };
 
-    return { response, aggregatedData, campaignName, dataType, chartData };
+  const fetchCampaigns = async (): Promise<CampaignData[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'campaigns'));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CampaignData));
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+      throw error;
+    }
+  };
+
+  const fetchCampaignOSData = async (campaignId: string): Promise<OSData[]> => {
+    const q = query(collection(db, 'campaign_os_data'), where('campaignId', '==', campaignId));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as OSData);
+  };
+
+  const fetchCampaignRegionData = async (campaignId: string): Promise<RegionData[]> => {
+    const q = query(collection(db, 'campaign_region_data'), where('campaignId', '==', campaignId));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as RegionData);
+  };
+
+  const validateData = (data: AggregatedData): AggregatedData => {
+    return {
+      ...data,
+      clickThroughRate: Math.min(data.clickThroughRate, 100), // Cap CTR at 100%
+      conversionRate: Math.min(data.conversionRate, 100), // Cap conversion rate at 100%
+      roas: data.roas >= 0 ? data.roas : 0, // Ensure ROAS is non-negative
+    };
+  };
+
+  const getChatGPTResponse = async (input: string): Promise<ResponseData> => {
+    try {
+      const overallStats = await fetchOverallStats();
+      const campaigns = await fetchCampaigns();
+      
+      let campaignName: string | undefined;
+      let dataType: 'all' | 'regional' | 'os' = 'all';
+      let specificData: OSData[] | RegionData[] | null = null;
+
+      if (input.toLowerCase().includes('os') || input.toLowerCase().includes('operating system')) {
+        dataType = 'os';
+        campaignName = getCampaignName(input, campaigns);
+        specificData = await fetchCampaignOSData(campaignName);
+      } else if (input.toLowerCase().includes('region') || input.toLowerCase().includes('location')) {
+        dataType = 'regional';
+        campaignName = getCampaignName(input, campaigns);
+        specificData = await fetchCampaignRegionData(campaignName);
+      }
+
+      const aggregatedData = calculateAggregatedData(overallStats);
+      const validatedData = validateData(aggregatedData);
+
+      const messages: ChatCompletionMessageParam[] = [
+        { role: "system", content: "You are a helpful assistant that analyzes marketing campaign data. Please provide insights based on the data provided, and be cautious of potential data inconsistencies." },
+        { role: "user", content: `
+          Overall campaign data: ${JSON.stringify(validatedData)}
+          ${campaignName ? `Specific campaign: ${campaignName}` : ''}
+          ${dataType !== 'all' ? `Data type: ${dataType}` : ''}
+          ${specificData ? `Specific data: ${JSON.stringify(specificData)}` : ''}
+          
+          User query: "${input}"
+          
+          Provide a detailed analysis of the data, addressing the user's query. Include relevant metrics, insights, and recommendations based on the data provided. If you notice any unusual values, please highlight these and suggest possible explanations.
+        `}
+      ];
+
+      console.log("Sending request to OpenAI API...");
+      const response = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: messages,
+        max_tokens: 500,
+      });
+      console.log("Received response from OpenAI API:", response);
+
+      const gptResponse = response.choices[0].message.content?.trim() || "I'm sorry, I couldn't generate a response.";
+
+      return {
+        response: gptResponse,
+        aggregatedData: aggregatedData,
+        campaignName: campaignName,
+        dataType: dataType,
+        chartData: specificData ? specificData.map(item => ({
+          name: 'os' in item ? item.os : item.region,
+          value: item.metrics.revenue,
+          avgPayout: item.metrics.avgPayout
+        })) : campaigns.map(campaign => ({
+          name: campaign.name,
+          value: campaign.metrics.revenue,
+          avgPayout: campaign.metrics.avgPayout
+        }))
+      };
+    } catch (error) {
+      console.error("Error in getChatGPTResponse:", error);
+      throw error;
+    }
   };
 
   const handleSend = async () => {
@@ -198,18 +248,25 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       setMessages(prev => [...prev, newMessage]);
       setInput('');
       
-      setTimeout(() => {
-        const responseData = generateResponse(input, mockData.campaigns);
+      try {
+        const responseData = await getChatGPTResponse(input);
         const newBotMessage = { text: responseData.response, sender: 'bot' as const };
         setMessages(prev => [...prev, newBotMessage]);
-        setIsLoading(false);
-        
         onSearchComplete(responseData);
 
-        // Increase the chat height as messages are added
         const newHeight = Math.min((messages.length + 2) * 60, 700);
         setChatHeight(`${newHeight}px`);
-      }, 1000);
+      } catch (error) {
+        console.error("Error getting ChatGPT response:", error);
+        let errorMessage = "I'm sorry, there was an error processing your request.";
+        if (error instanceof Error) {
+          errorMessage += ` Error details: ${error.message}`;
+        }
+        const errorBotMessage = { text: errorMessage, sender: 'bot' as const };
+        setMessages(prev => [...prev, errorBotMessage]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -219,8 +276,8 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const formatNumberWithColor = (num: number, prefix: string = '', isInteger: boolean = false): string => {
-    const formattedNum = formatNumber(Math.abs(num), isInteger);
+  const formatNumberWithColor = (num: number, prefix: string = ''): string => {
+    const formattedNum = formatNumber(Math.abs(num));
     const color = num >= 0 ? 'green' : 'red';
     return `<span style="color: ${color}">${prefix}${formattedNum}</span>`;
   };
@@ -247,22 +304,15 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   };
 
   const renderMessage = (message: Message, index: number) => (
-    <div key={index} className="flex mb-4">
-      <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'ml-auto' : 'mr-auto'}`} style={{maxWidth: message.sender === 'user' ? '33%' : '66%'}}>
-        {message.sender === 'user' && (
-          <div className={`p-3 rounded-lg shadow bg-gradient-to-r from-purple-400 to-blue-500 text-white`}>
-            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-          </div>
-        )}
-        <Avatar className="w-8 h-8">
+    <div key={index} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`} style={{maxWidth: '66%'}}>
+        <Avatar className="w-8 h-8 flex-shrink-0">
           <AvatarImage src={message.sender === 'user' ? "/assets/user-avatar.png" : "/assets/ai-avatar.png"} alt={message.sender === 'user' ? "User" : "AI"} />
           <AvatarFallback>{message.sender === 'user' ? "U" : "AI"}</AvatarFallback>
         </Avatar>
-        {message.sender === 'bot' && (
-          <div className={`p-3 rounded-lg shadow bg-gray-100`}> {/* Changed from bg-white to bg-gray-100 */}
-            <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
-          </div>
-        )}
+        <div className={`p-3 rounded-lg shadow ${message.sender === 'user' ? 'bg-gradient-to-r from-purple-400 to-blue-500 text-white' : 'bg-gray-100'}`}>
+          <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
+        </div>
       </div>
     </div>
   );
@@ -271,6 +321,23 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     setInput(starter);
     handleSend();
   };
+
+  useEffect(() => {
+    const signInAnon = async () => {
+      try {
+        const userCredential = await signInAnonymously(auth);
+        console.log("Signed in anonymously", userCredential.user);
+      } catch (error) {
+        console.error("Error signing in anonymously:", error);
+        if (error instanceof Error) {
+          console.error("Error name:", error.name);
+          console.error("Error message:", error.message);
+          console.error("Error stack:", error.stack);
+        }
+      }
+    };
+    signInAnon();
+  }, []);
 
   return (
     <div className="w-full max-w-4xl">

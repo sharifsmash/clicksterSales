@@ -1,4 +1,5 @@
 const path = require('path');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -10,8 +11,27 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
       '@assets': path.resolve(__dirname, 'src/assets'),
+      '@': path.resolve(__dirname, 'src'),
+    },
+    fallback: {
+      "fs": false,
+      "tls": false,
+      "net": false,
+      "path": require.resolve('path-browserify'),
+      "zlib": require.resolve('browserify-zlib'),
+      "http": require.resolve('stream-http'),
+      "https": require.resolve('https-browserify'),
+      "stream": require.resolve('stream-browserify'),
+      "crypto": require.resolve('crypto-browserify'),
+      "os": require.resolve('os-browserify/browser'),
+      "url": require.resolve('url/'),
+      "assert": require.resolve('assert/'),
+      "util": require.resolve('util/'),
     },
   },
+  plugins: [
+    new NodePolyfillPlugin(),
+  ],
   module: {
     rules: [
       {
@@ -25,10 +45,6 @@ module.exports = {
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: 'asset/resource',
-      },
-      {
-        test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource',
       },
     ],
