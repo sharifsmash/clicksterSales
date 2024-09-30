@@ -7,10 +7,11 @@ import ShinyButton from "../components/magicui/shiny-button";
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
 import QuestionSection from '../components/QuestionSection'; // Import the new component
-import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
-import { FaPercent, FaMousePointer, FaDollarSign } from 'react-icons/fa';
+import { Card, CardContent } from "../components/ui/card";
+import mockData from '../mockdata.json';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 
 interface AdMockupProps {
   title: string;
@@ -18,6 +19,34 @@ interface AdMockupProps {
   cta: string;
   logoSrc: string | null;
   logoAlt: string;
+}
+
+// Add this interface near the top of your file, after other imports
+interface ChartData {
+  campaignPerformance: { name: string; value: number }[];
+  costValueDistribution: { name: string; value: number }[];
+}
+
+// Add these new interfaces
+interface AggregatedData {
+  clicks: number;
+  cvrs: number;
+  revenue: number;
+  spent: number;
+  profit: number;
+  conversionRate: number;
+  clickThroughRate: number;
+  costPerClick: number;
+  roas: number;
+  avgPayout: number;
+}
+
+interface ResponseData {
+  response: string;
+  aggregatedData: AggregatedData;
+  campaignName?: string;
+  dataType?: 'all' | 'regional' | 'os';
+  chartData?: { name: string; value: number }[];
 }
 
 const features = [
@@ -230,8 +259,23 @@ const SaasPage: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isYearlyPricing, setIsYearlyPricing] = useState(true);
   const [question, setQuestion] = useState(''); // New state for the question
-  const [showCards, setShowCards] = useState(false);
-  const [chatResult, setChatResult] = useState('');
+  const [showCards, setShowCards] = useState(true); // Change this to true by default
+  const [cardData, setCardData] = useState({
+    conversionRate: 0,
+    clickThroughRate: 0,
+    costPerClick: 0,
+    roas: 0,
+    avgPayout: 0,
+    profit: 0
+  });
+  const [chartData, setChartData] = useState<ChartData>({
+    campaignPerformance: [],
+    costValueDistribution: []
+  });
+  const [summaryText, setSummaryText] = useState('All campaigns');
+  const [showResults, setShowResults] = useState(false);
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   const typeAnimationRef = useRef<HTMLSpanElement>(null);
 
@@ -278,6 +322,77 @@ const SaasPage: React.FC = () => {
       icon: <FaBolt />
     }
   ];
+
+  const updateCardData = (response: string) => {
+    const lines = response.split('\n');
+    const data: { [key: string]: number } = {};
+
+    lines.forEach(line => {
+      const [key, value] = line.split(':');
+      if (key && value) {
+        const numericValue = parseFloat(value.replace(/[^0-9.-]+/g, ""));
+        if (!isNaN(numericValue)) {
+          data[key.trim()] = numericValue;
+        }
+      }
+    });
+
+    setCardData({
+      conversionRate: data['CR'] || 0,
+      clickThroughRate: data['CTR'] || 0,
+      costPerClick: Math.abs(data['CPC']) || 0,
+      roas: data['ROI'] || 0,
+      avgPayout: data['Avg. Payout'] || 0,
+      profit: data['Profit'] || 0
+    });
+
+    setShowCards(true);
+  };
+
+  const updateChartData = () => {
+    const campaign = mockData.campaigns[0];
+    setChartData({
+      campaignPerformance: [
+        { name: 'Impressions', value: campaign.clicks * (100 / campaign.ctr) },
+        { name: 'Clicks', value: campaign.clicks },
+        { name: 'Conversions', value: campaign.cvrs }
+      ],
+      costValueDistribution: [
+        { name: 'CPA', value: campaign.ecpa },
+        { name: 'AOV', value: campaign.avgPayout }
+      ]
+    });
+  };
+
+  const handleSearchComplete = (responseData: ResponseData) => {
+    console.log(responseData.response);
+    setCardData(responseData.aggregatedData);
+    
+    if (responseData.chartData) {
+      const updatedChartData = responseData.chartData.map(item => ({
+        ...item,
+        avgPayout: responseData.aggregatedData.avgPayout
+      }));
+      
+      setChartData({
+        campaignPerformance: updatedChartData,
+        costValueDistribution: [
+          { name: 'CPA', value: responseData.aggregatedData.costPerClick * responseData.aggregatedData.conversionRate / 100 },
+          { name: 'AOV', value: responseData.aggregatedData.avgPayout }
+        ]
+      });
+    }
+
+    // Set the summary text
+    if (responseData.campaignName) {
+      setSummaryText(`${responseData.campaignName} campaign - ${responseData.dataType === 'regional' ? 'Regional data' : 'OS breakdown'}`);
+    } else {
+      setSummaryText('All campaigns');
+    }
+
+    setShowResults(true);
+  };
+
   return (
     <div className="min-h-screen overflow-hidden relative">
       <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
@@ -538,75 +653,163 @@ const SaasPage: React.FC = () => {
       {/* AI-powered marketing solutions section */}
       <section className="bg-gradient-to-b from-white to-indigo-50 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-            AI-Powered Marketing Solutions
-          </h2>
-          
           <div className="flex flex-col lg:flex-row items-start justify-between">
-            {/* AI Chat App */}
-            <div className="lg:w-2/3 pr-4">
-              <DataChatApp 
-                onSearchComplete={(result) => {
-                  console.log(result);
-                  setShowCards(true);
-                  setChatResult(result);
-                }} 
+            <div className="lg:w-1/2 order-2 lg:order-1">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                AI-Powered Marketing Solutions
+              </h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Harness the power of artificial intelligence to revolutionize your marketing campaigns. Our platform uses cutting-edge AI technology to optimize your ad performance, target the right audience, and maximize your ROI.
+              </p>
+              <ul className="list-disc list-inside text-lg text-gray-700 mb-8">
+                <li>Automated ad creation and optimization</li>
+                <li>Intelligent audience targeting</li>
+                <li>Predictive analytics for campaign performance</li>
+                <li>Real-time adjustments for maximum efficiency</li>
+              </ul>
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
+                Explore AI Features
+              </button>
+            </div>
+            <div className="lg:w-1/2 mb-8 lg:mb-0 order-1 lg:order-2">
+              <img
+                src="/assets/ai-ilustration-marketing-1024x663.webp"
+                alt="AI-powered marketing illustration"
+                className="rounded-lg w-full h-auto"
               />
             </div>
-
-            {/* Results Cards */}
-            {showCards && (
-              <div className="lg:w-1/3 pl-4 mt-8 lg:mt-0">
-                <div className="grid grid-cols-1 gap-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                      <FaPercent className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">4.45%</div>
-                      <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
-                      <FaMousePointer className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">2.74%</div>
-                      <p className="text-xs text-muted-foreground">+10.5% from last month</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Cost Per Click</CardTitle>
-                      <FaDollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">$0.78</div>
-                      <p className="text-xs text-muted-foreground">-5.2% from last month</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">ROI</CardTitle>
-                      <FaChartLine className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">215%</div>
-                      <p className="text-xs text-muted-foreground">+18.3% from last month</p>
-                    </CardContent>
-                  </Card>
-                </div>
+          </div>
+          {/* Data Chat App Integration */}
+          <div className="mt-8 flex flex-col lg:flex-row items-start">
+            <div className="lg:w-1/2 pr-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Ask Our AI About Your Marketing Campaigns
+              </h3>
+              <DataChatApp onSearchComplete={handleSearchComplete} />
+            </div>
+            {showResults && (
+              <div className="lg:w-1/2 pl-4 flex flex-col justify-start">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">{summaryText}</h3>
+                <p className="text-lg text-gray-600 mb-6">Data from {mockData.date_range}</p>
+                <>
+                  <div className="grid grid-cols-2 gap-4 mt-16">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Conversion Rate</p>
+                            <p className="text-2xl font-bold">{cardData.conversionRate.toFixed(2)}%</p>
+                          </div>
+                          <FaPercent className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Click-Through Rate</p>
+                            <p className="text-2xl font-bold">{cardData.clickThroughRate.toFixed(2)}%</p>
+                          </div>
+                          <FaMousePointer className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Cost Per Click</p>
+                            <p className="text-2xl font-bold" style={{ color: 'red' }}>
+                              ${Math.abs(cardData.costPerClick).toFixed(2)}
+                            </p>
+                          </div>
+                          <FaDollarSign className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">ROAS</p>
+                            <p className="text-2xl font-bold" style={{ color: cardData.roas >= 0 ? 'green' : 'red' }}>
+                              {cardData.roas.toFixed(2)}%
+                            </p>
+                          </div>
+                          <FaChartLine className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Avg. Payout</p>
+                            <p className="text-2xl font-bold" style={{ color: cardData.avgPayout >= 0 ? 'green' : 'red' }}>
+                              ${Math.abs(cardData.avgPayout).toFixed(2)}
+                            </p>
+                          </div>
+                          <FaDollarSign className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Profit</p>
+                            <p className="text-2xl font-bold" style={{ color: cardData.profit >= 0 ? 'green' : 'red' }}>
+                              ${Math.abs(cardData.profit).toFixed(2)}
+                            </p>
+                          </div>
+                          <FaChartLine className="text-2xl text-indigo-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div className="mt-8">
+                    <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ComposedChart data={chartData.campaignPerformance}>
+                        <XAxis dataKey="name" />
+                        <YAxis yAxisId="left" />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="value" fill="#8884d8" />
+                        <Line yAxisId="right" type="monotone" dataKey="avgPayout" stroke="#ff7300" />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-8">
+                    <h4 className="text-xl font-bold text-gray-900 mb-4">Cost vs. Value</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={chartData.costValueDistribution}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartData.costValueDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
               </div>
             )}
           </div>
         </div>
       </section>
-
-      {/* Add the QuestionSection component here */}
-      <QuestionSection question={question} /> {/* Pass the question state to QuestionSection */}
 
       <section className="bg-white py-12">
         <div className="container-fluid px-0">

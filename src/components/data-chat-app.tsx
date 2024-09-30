@@ -65,7 +65,29 @@ interface Message {
 }
 
 interface DataChatAppProps {
-  onSearchComplete: (result: string) => void;
+  onSearchComplete: (responseData: ResponseData) => void;
+}
+
+// Add these new interfaces
+interface AggregatedData {
+  clicks: number;
+  cvrs: number;
+  revenue: number;
+  spent: number;
+  profit: number;
+  conversionRate: number;
+  clickThroughRate: number;
+  costPerClick: number;
+  roas: number;
+  avgPayout: number;
+}
+
+interface ResponseData {
+  response: string;
+  aggregatedData: AggregatedData;
+  campaignName?: string;
+  dataType?: 'all' | 'regional' | 'os';
+  chartData?: { name: string; value: number }[];
 }
 
 const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
@@ -76,112 +98,132 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
+  const calculateAggregatedData = (campaigns: CampaignData[]) => {
+    const aggregatedData = campaigns.reduce((acc, campaign) => {
+      acc.clicks += campaign.clicks;
+      acc.offerClicks += campaign.offerClicks;
+      acc.cvrs += campaign.cvrs;
+      acc.revenue += campaign.revenue;
+      acc.spent += campaign.spent;
+      acc.profit += campaign.profit;
+      return acc;
+    }, { clicks: 0, offerClicks: 0, cvrs: 0, revenue: 0, spent: 0, profit: 0 });
+
+    const ctr = (aggregatedData.offerClicks / aggregatedData.clicks) * 100;
+    const cr = (aggregatedData.cvrs / aggregatedData.clicks) * 100;
+    const roi = (aggregatedData.profit / aggregatedData.spent) * 100;
+    const cpc = aggregatedData.spent / aggregatedData.clicks;
+    const avgPayout = aggregatedData.revenue / aggregatedData.cvrs;
+
+    return {
+      clicks: aggregatedData.clicks,
+      cvrs: aggregatedData.cvrs,
+      revenue: aggregatedData.revenue,
+      spent: aggregatedData.spent,
+      profit: aggregatedData.profit,
+      conversionRate: cr,
+      clickThroughRate: ctr,
+      costPerClick: cpc,
+      roas: roi,
+      avgPayout: avgPayout
+    };
+  };
+
+  const generateResponse = (input: string, campaigns: CampaignData[]): ResponseData => {
+    const lowercaseInput = input.toLowerCase();
+    let aggregatedData: AggregatedData;
+    let response = "";
+    let campaignName: string | undefined;
+    let dataType: 'all' | 'regional' | 'os' = 'all';
+    let chartData: { name: string; value: number }[] | undefined;
+
+    if (lowercaseInput.includes('regional') || lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
+      campaignName = getCampaignName(lowercaseInput, campaigns);
+      const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
+      aggregatedData = calculateAggregatedData([campaign]);
+      dataType = 'regional';
+      chartData = campaign.by_region.map(region => ({ name: region.name, value: region.revenue }));
+      
+      response = `Regional data for ${campaignName} campaign:\n\n`;
+      campaign.by_region.forEach(region => {
+        response += `- ${region.name}: ${formatNumber(region.clicks)} clicks, ${region.cr.toFixed(2)}% CR, $${formatNumber(region.revenue)} revenue, $${formatNumber(region.profit)} profit\n`;
+      });
+    } else if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
+      campaignName = getCampaignName(lowercaseInput, campaigns);
+      const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
+      aggregatedData = calculateAggregatedData([campaign]);
+      dataType = 'os';
+      chartData = campaign.by_os.map(os => ({ name: os.name, value: os.revenue }));
+      
+      response = `OS breakdown for ${campaignName} campaign:\n\n`;
+      campaign.by_os.forEach(os => {
+        response += `${os.name}: ${formatNumber(os.clicks)} clicks, ${os.cr.toFixed(2)}% CR, $${formatNumber(os.revenue)} revenue, $${formatNumber(os.profit)} profit\n`;
+      });
+    } else {
+      aggregatedData = calculateAggregatedData(campaigns);
+      chartData = [
+        { name: 'Clicks', value: aggregatedData.clicks },
+        { name: 'Conversions', value: aggregatedData.cvrs },
+        { name: 'Revenue', value: aggregatedData.revenue }
+      ];
+      
+      response = `Overview of all campaigns:\n\n` +
+        `Clicks: ${formatNumber(aggregatedData.clicks, true)}\n` +
+        `CTR: ${formatNumber(aggregatedData.clickThroughRate)}%\n` +
+        `Conversions: ${formatNumber(aggregatedData.cvrs, true)}\n` +
+        `CR: ${formatNumber(aggregatedData.conversionRate)}%\n` +
+        `Revenue: ${formatNumberWithColor(aggregatedData.revenue, '$')}\n` +
+        `Spent: ${formatNumberWithColor(-aggregatedData.spent, '$')}\n` +
+        `Profit: ${formatNumberWithColor(aggregatedData.profit, '$')}\n` +
+        `ROI: ${formatNumberWithColor(aggregatedData.roas)}%\n` +
+        `CPC: ${formatNumberWithColor(-aggregatedData.costPerClick, '$')}\n` +
+        `Avg. Payout: ${formatNumberWithColor(aggregatedData.avgPayout, '$')}`;
+    }
+
+    return { response, aggregatedData, campaignName, dataType, chartData };
+  };
+
   const handleSend = async () => {
     if (input.trim()) {
       setIsLoading(true);
       const newMessage = { text: input, sender: 'user' as const };
       setMessages(prev => [...prev, newMessage]);
       setInput('');
-      // Simulated response
+      
       setTimeout(() => {
-        const response = generateResponse(input, mockData.campaigns);
-        const newBotMessage = { text: response, sender: 'bot' as const };
+        const responseData = generateResponse(input, mockData.campaigns);
+        const newBotMessage = { text: responseData.response, sender: 'bot' as const };
         setMessages(prev => [...prev, newBotMessage]);
         setIsLoading(false);
-        onSearchComplete(response);
         
-        // Calculate new height based on content
-        const newHeight = Math.min((messages.length + 2) * 60, 700); // 60px per message, max 700px
+        onSearchComplete(responseData);
+        
+        const newHeight = Math.min((messages.length + 2) * 60, 700);
         setExpandedHeight(`${newHeight}px`);
       }, 1000);
     }
   };
 
-  const formatNumber = (num: number): string => {
-    return num.toLocaleString('en-US');
+  const formatNumber = (num: number, isInteger: boolean = false): string => {
+    return isInteger
+      ? Math.round(num).toLocaleString('en-US')
+      : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const generateResponse = (input: string, campaigns: CampaignData[]): string => {
+  const formatNumberWithColor = (num: number, prefix: string = '', isInteger: boolean = false): string => {
+    const formattedNum = formatNumber(Math.abs(num), isInteger);
+    const color = num >= 0 ? 'green' : 'red';
+    return `<span style="color: ${color}">${prefix}${formattedNum}</span>`;
+  };
+
+  const getCampaignName = (input: string, campaigns: CampaignData[]): string => {
     const lowercaseInput = input.toLowerCase();
-    
-    if (lowercaseInput.includes('turn off') && lowercaseInput.includes('losing money') && lowercaseInput.includes('region')) {
-      let response = "Here are the regions that are losing money and should be considered for turning off:\n\n";
-      let hasLosingRegions = false;
-
-      campaigns.forEach(campaign => {
-        const losingRegions = campaign.by_region.filter(region => region.profit < 0);
-        if (losingRegions.length > 0) {
-          hasLosingRegions = true;
-          response += `${campaign.name} campaign:\n`;
-          losingRegions.forEach(region => {
-            response += `- ${region.name}: Profit: $${formatNumber(region.profit)}, ROI: ${region.roi.toFixed(2)}%\n`;
-          });
-          response += '\n';
-        }
-      });
-
-      if (!hasLosingRegions) {
-        return "Good news! There are no regions currently losing money across all campaigns.";
-      }
-
-      return response.trim();
-    }
-    
-    if (lowercaseInput.includes('regional') || lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
-      let response = "Here's the regional information for each campaign:\n\n";
-      
-      campaigns.forEach(campaign => {
-        response += `${campaign.name} campaign:\n`;
-        campaign.by_region.forEach(region => {
-          response += `- ${region.name}: ${formatNumber(region.clicks)} clicks, ${region.cr.toFixed(2)}% CR, $${formatNumber(region.revenue)} revenue\n`;
-        });
-        response += '\n';
-      });
-      
-      return response.trim();
-    }
-    
-    if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
-      return `For the ${campaigns[0].name} campaign, here's the OS breakdown:\n\n` +
-        campaigns[0].by_os.map(os => 
-          `${os.name}: ${formatNumber(os.clicks)} clicks, ${os.cr.toFixed(2)}% CR, $${formatNumber(os.revenue)} revenue`
-        ).join('\n');
-    }
-    
-    if (lowercaseInput.includes('performance') || lowercaseInput.includes('overview')) {
-      return `Here's an overview of the ${campaigns[0].name} campaign:\n\n` +
-        `Clicks: ${formatNumber(campaigns[0].clicks)}\n` +
-        `CTR: ${campaigns[0].ctr.toFixed(2)}%\n` +
-        `Conversions: ${formatNumber(campaigns[0].cvrs)}\n` +
-        `CR: ${campaigns[0].cr.toFixed(2)}%\n` +
-        `Revenue: $${formatNumber(campaigns[0].revenue)}\n` +
-        `Spent: $${formatNumber(campaigns[0].spent)}\n` +
-        `Profit: $${formatNumber(campaigns[0].profit)}\n` +
-        `ROI: ${campaigns[0].roi.toFixed(2)}%\n` +
-        `EPC: $${campaigns[0].epc.toFixed(2)}\n` +
-        `CPC: $${campaigns[0].cpc.toFixed(2)}\n` +
-        `eCPA: $${campaigns[0].ecpa.toFixed(2)}\n` +
-        `Avg. Payout: $${campaigns[0].avgPayout.toFixed(2)}`;
-    }
-    
-    if (lowercaseInput.includes('best') || lowercaseInput.includes('top')) {
-      if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
-        const bestOS = campaigns[0].by_os.reduce((prev, current) => (current.revenue > prev.revenue) ? current : prev);
-        return `The best performing OS for the ${campaigns[0].name} campaign is ${bestOS.name}:\n\n` +
-               `Clicks: ${formatNumber(bestOS.clicks)}\n` +
-               `CR: ${bestOS.cr.toFixed(2)}%\n` +
-               `Revenue: $${formatNumber(bestOS.revenue)}`;
-      }
-      if (lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
-        const bestRegion = campaigns[0].by_region.reduce((prev, current) => (current.revenue > prev.revenue) ? current : prev);
-        return `The best performing region for the ${campaigns[0].name} campaign is ${bestRegion.name}:\n\n` +
-               `Clicks: ${formatNumber(bestRegion.clicks)}\n` +
-               `CR: ${bestRegion.cr.toFixed(2)}%\n` +
-               `Revenue: $${formatNumber(bestRegion.revenue)}`;
+    for (const campaign of campaigns) {
+      if (lowercaseInput.includes(campaign.name.toLowerCase())) {
+        return campaign.name;
       }
     }
-    
-    return "I'm sorry, I couldn't understand your query. You can ask about regions losing money, OS breakdown, regional performance, overall campaign performance, or the best performing OS/region.";
+    return campaigns[0].name; // Default to the first campaign if no match is found
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -199,7 +241,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     <div key={index} className="flex mb-4">
       <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'ml-auto' : 'mr-auto'}`} style={{maxWidth: message.sender === 'user' ? '33%' : '66%'}}>
         {message.sender === 'user' && (
-          <div className={`p-3 rounded-lg shadow bg-primary text-primary-foreground`}>
+          <div className={`p-3 rounded-lg shadow bg-gradient-to-r from-purple-400 to-blue-500 text-white`}>
             <p className="text-sm whitespace-pre-wrap">{message.text}</p>
           </div>
         )}
@@ -208,13 +250,18 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           <AvatarFallback>{message.sender === 'user' ? "U" : "AI"}</AvatarFallback>
         </Avatar>
         {message.sender === 'bot' && (
-          <div className={`p-3 rounded-lg shadow bg-muted`}>
-            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+          <div className={`p-3 rounded-lg shadow bg-white`}>
+            <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
           </div>
         )}
       </div>
     </div>
   );
+
+  const handleConversationStarter = (starter: string) => {
+    setInput(starter);
+    handleSend();
+  };
 
   return (
     <div className="w-full max-w-4xl">
@@ -230,7 +277,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
                       <AvatarImage src="/assets/ai-avatar.png" alt="AI" />
                       <AvatarFallback>AI</AvatarFallback>
                     </Avatar>
-                    <div className="p-3 rounded-lg shadow bg-muted">
+                    <div className="p-3 rounded-lg shadow bg-white">
                       <p className="text-sm">Analyzing...</p>
                     </div>
                   </div>
@@ -250,6 +297,20 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="mt-4 flex space-x-4 justify-center">
+        <button
+          onClick={() => handleConversationStarter("Regional data per campaign")}
+          className="px-4 py-2 border border-purple-500 text-purple-500 rounded-md hover:bg-purple-50 transition-colors duration-300"
+        >
+          Regional data per campaign
+        </button>
+        <button
+          onClick={() => handleConversationStarter("OS by campaign")}
+          className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 transition-colors duration-300"
+        >
+          OS by campaign
+        </button>
       </div>
     </div>
   );
