@@ -255,6 +255,83 @@ const PricingCard: React.FC<{
   </div>
 );
 
+const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email === 'test@test.com' && password === 'pass1234') {
+      onLogin();
+    } else {
+      setError('Invalid email or password');
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <input type="hidden" name="remember" defaultValue="true" />
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email-address" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign in
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const SaasPage: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isYearlyPricing, setIsYearlyPricing] = useState(true);
@@ -274,6 +351,7 @@ const SaasPage: React.FC = () => {
   });
   const [summaryText, setSummaryText] = useState('All campaigns');
   const [showResults, setShowResults] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -369,13 +447,8 @@ const SaasPage: React.FC = () => {
     setCardData(responseData.aggregatedData);
     
     if (responseData.chartData) {
-      const updatedChartData = responseData.chartData.map(item => ({
-        ...item,
-        avgPayout: responseData.aggregatedData.avgPayout
-      }));
-      
       setChartData({
-        campaignPerformance: updatedChartData,
+        campaignPerformance: responseData.chartData,
         costValueDistribution: [
           { name: 'CPA', value: responseData.aggregatedData.costPerClick * responseData.aggregatedData.conversionRate / 100 },
           { name: 'AOV', value: responseData.aggregatedData.avgPayout }
@@ -392,6 +465,10 @@ const SaasPage: React.FC = () => {
 
     setShowResults(true);
   };
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  }
 
   return (
     <div className="min-h-screen overflow-hidden relative">
@@ -691,86 +768,86 @@ const SaasPage: React.FC = () => {
               <div className="lg:w-1/2 pl-4 flex flex-col justify-start">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{summaryText}</h3>
                 <p className="text-lg text-gray-600 mb-6">Data from {mockData.date_range}</p>
-                <>
-                  <div className="grid grid-cols-2 gap-4 mt-16">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Conversion Rate</p>
-                            <p className="text-2xl font-bold">{cardData.conversionRate.toFixed(2)}%</p>
-                          </div>
-                          <FaPercent className="text-2xl text-indigo-500" />
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Conversion Rate</p>
+                          <p className="text-2xl font-bold">{cardData.conversionRate.toFixed(2)}%</p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Click-Through Rate</p>
-                            <p className="text-2xl font-bold">{cardData.clickThroughRate.toFixed(2)}%</p>
-                          </div>
-                          <FaMousePointer className="text-2xl text-indigo-500" />
+                        <FaPercent className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Click-Through Rate</p>
+                          <p className="text-2xl font-bold">{cardData.clickThroughRate.toFixed(2)}%</p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Cost Per Click</p>
-                            <p className="text-2xl font-bold" style={{ color: 'red' }}>
-                              ${Math.abs(cardData.costPerClick).toFixed(2)}
-                            </p>
-                          </div>
-                          <FaDollarSign className="text-2xl text-indigo-500" />
+                        <FaMousePointer className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Cost Per Click</p>
+                          <p className="text-2xl font-bold text-black">
+                            ${Math.abs(cardData.costPerClick).toFixed(2)}
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">ROAS</p>
-                            <p className="text-2xl font-bold" style={{ color: cardData.roas >= 0 ? 'green' : 'red' }}>
-                              {cardData.roas.toFixed(2)}%
-                            </p>
-                          </div>
-                          <FaChartLine className="text-2xl text-indigo-500" />
+                        <FaDollarSign className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">ROAS</p>
+                          <p className="text-2xl font-bold" style={{ color: cardData.roas >= 0 ? 'green' : 'red' }}>
+                            {cardData.roas.toFixed(2)}%
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Avg. Payout</p>
-                            <p className="text-2xl font-bold" style={{ color: cardData.avgPayout >= 0 ? 'green' : 'red' }}>
-                              ${Math.abs(cardData.avgPayout).toFixed(2)}
-                            </p>
-                          </div>
-                          <FaDollarSign className="text-2xl text-indigo-500" />
+                        <FaChartLine className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. Payout</p>
+                          <p className="text-2xl font-bold text-black">
+                            ${Math.abs(cardData.avgPayout).toFixed(2)}
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Profit</p>
-                            <p className="text-2xl font-bold" style={{ color: cardData.profit >= 0 ? 'green' : 'red' }}>
-                              ${Math.abs(cardData.profit).toFixed(2)}
-                            </p>
-                          </div>
-                          <FaChartLine className="text-2xl text-indigo-500" />
+                        <FaDollarSign className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Profit</p>
+                          <p className="text-2xl font-bold" style={{ color: cardData.profit >= 0 ? 'green' : 'red' }}>
+                            ${Math.abs(cardData.profit).toFixed(2)}
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <div className="mt-8">
-                    <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance</h4>
-                    <ResponsiveContainer width="100%" height={300}>
+                        <FaChartLine className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance</h4>
+                  <div className="h-[400px]"> {/* Increased height for better visibility */}
+                    <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={chartData.campaignPerformance}>
                         <XAxis dataKey="name" />
                         <YAxis yAxisId="left" />
@@ -782,29 +859,7 @@ const SaasPage: React.FC = () => {
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="mt-8">
-                    <h4 className="text-xl font-bold text-gray-900 mb-4">Cost vs. Value</h4>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={chartData.costValueDistribution}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {chartData.costValueDistribution.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </>
+                </div>
               </div>
             )}
           </div>

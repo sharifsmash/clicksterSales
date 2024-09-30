@@ -87,14 +87,14 @@ interface ResponseData {
   aggregatedData: AggregatedData;
   campaignName?: string;
   dataType?: 'all' | 'regional' | 'os';
-  chartData?: { name: string; value: number }[];
+  chartData?: { name: string; value: number; avgPayout: number }[];
 }
 
 const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [expandedHeight, setExpandedHeight] = useState('60px');
+  const [chatHeight, setChatHeight] = useState('30px'); // Start with a 30px height
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -135,14 +135,18 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     let response = "";
     let campaignName: string | undefined;
     let dataType: 'all' | 'regional' | 'os' = 'all';
-    let chartData: { name: string; value: number }[] | undefined;
+    let chartData: { name: string; value: number; avgPayout: number }[] | undefined;
 
     if (lowercaseInput.includes('regional') || lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
       campaignName = getCampaignName(lowercaseInput, campaigns);
       const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
       aggregatedData = calculateAggregatedData([campaign]);
       dataType = 'regional';
-      chartData = campaign.by_region.map(region => ({ name: region.name, value: region.revenue }));
+      chartData = campaign.by_region.map(region => ({ 
+        name: region.name, 
+        value: region.revenue,
+        avgPayout: region.avgPayout
+      }));
       
       response = `Regional data for ${campaignName} campaign:\n\n`;
       campaign.by_region.forEach(region => {
@@ -153,7 +157,11 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase()) || campaigns[0];
       aggregatedData = calculateAggregatedData([campaign]);
       dataType = 'os';
-      chartData = campaign.by_os.map(os => ({ name: os.name, value: os.revenue }));
+      chartData = campaign.by_os.map(os => ({ 
+        name: os.name, 
+        value: os.revenue,
+        avgPayout: os.avgPayout
+      }));
       
       response = `OS breakdown for ${campaignName} campaign:\n\n`;
       campaign.by_os.forEach(os => {
@@ -161,11 +169,11 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       });
     } else {
       aggregatedData = calculateAggregatedData(campaigns);
-      chartData = [
-        { name: 'Clicks', value: aggregatedData.clicks },
-        { name: 'Conversions', value: aggregatedData.cvrs },
-        { name: 'Revenue', value: aggregatedData.revenue }
-      ];
+      chartData = campaigns.map(campaign => ({
+        name: campaign.name,
+        value: campaign.revenue,
+        avgPayout: campaign.avgPayout
+      }));
       
       response = `Overview of all campaigns:\n\n` +
         `Clicks: ${formatNumber(aggregatedData.clicks, true)}\n` +
@@ -197,9 +205,10 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
         setIsLoading(false);
         
         onSearchComplete(responseData);
-        
+
+        // Increase the chat height as messages are added
         const newHeight = Math.min((messages.length + 2) * 60, 700);
-        setExpandedHeight(`${newHeight}px`);
+        setChatHeight(`${newHeight}px`);
       }, 1000);
     }
   };
@@ -250,7 +259,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           <AvatarFallback>{message.sender === 'user' ? "U" : "AI"}</AvatarFallback>
         </Avatar>
         {message.sender === 'bot' && (
-          <div className={`p-3 rounded-lg shadow bg-white`}>
+          <div className={`p-3 rounded-lg shadow bg-gray-100`}> {/* Changed from bg-white to bg-gray-100 */}
             <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
           </div>
         )}
@@ -266,23 +275,25 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   return (
     <div className="w-full max-w-4xl">
       <div ref={chatRef}>
-        <Card className={`transition-all duration-300 ease-in-out h-[600px]`}>
+        <Card className={`transition-all duration-300 ease-in-out h-[${chatHeight}] overflow-hidden bg-white`}>
           <CardContent className="p-4 h-full flex flex-col">
-            <ScrollArea className="flex-grow mb-4">
-              {messages.map((message, index) => renderMessage(message, index))}
-              {isLoading && (
-                <div className="flex justify-start mb-4">
-                  <div className="flex items-start space-x-2 max-w-[66%]">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src="/assets/ai-avatar.png" alt="AI" />
-                      <AvatarFallback>AI</AvatarFallback>
-                    </Avatar>
-                    <div className="p-3 rounded-lg shadow bg-white">
-                      <p className="text-sm">Analyzing...</p>
+            <ScrollArea className="flex-grow mb-4 pr-4">
+              <div className="space-y-4">
+                {messages.map((message, index) => renderMessage(message, index))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-2 max-w-[66%]">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src="/assets/ai-avatar.png" alt="AI" />
+                        <AvatarFallback>AI</AvatarFallback>
+                      </Avatar>
+                      <div className="p-3 rounded-lg shadow bg-gray-200"> {/* Changed from bg-gray-100 to bg-gray-200 */}
+                        <p className="text-sm">Analyzing...</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </ScrollArea>
             <div className="flex space-x-2">
               <Input
