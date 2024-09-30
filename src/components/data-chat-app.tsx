@@ -8,24 +8,58 @@ import { Select, SelectItem } from "./ui/select";
 import { Switch } from "./ui/switch";
 // Update the import statement
 import { FaSun, FaMoon, FaPercent, FaMousePointer, FaDollarSign, FaChartLine, FaUsers } from 'react-icons/fa';
+import mockData from '../mockdata.json';
 
-// Define types for the campaign data
+// Update the CampaignData interface
 interface CampaignData {
   id: string;
   name: string;
   owner: string;
-  data: {
-    conversionRate: number;
-    ctr: number;
-    cpc: number;
-    roas: number;
-    aov: number;
-    clv: number;
-    cpa: number;
-    impressions: number;
+  clicks: number;
+  offerClicks: number;
+  ctr: number;
+  cvrs: number;
+  cr: number;
+  revenue: number;
+  spent: number;
+  profit: number;
+  roi: number;
+  epc: number;
+  cpc: number;
+  ecpa: number;
+  avgPayout: number;
+  by_os: {
+    name: string;
     clicks: number;
-    conversions: number;
-  };
+    offerClicks: number;
+    ctr: number;
+    cvrs: number;
+    cr: number;
+    revenue: number;
+    spent: number;
+    profit: number;
+    roi: number;
+    epc: number;
+    cpc: number;
+    ecpa: number;
+    avgPayout: number;
+  }[];
+  by_region: {
+    name: string;
+    clicks: number;
+    offerClicks: number;
+    ctr: number;
+    cvrs: number;
+    cr: number;
+    revenue: number;
+    spent: number;
+    profit: number;
+    roi: number;
+    epc: number;
+    cpc: number;
+    ecpa: number;
+    avgPayout: number;
+  }[];
 }
 
 interface Message {
@@ -37,59 +71,7 @@ const mockApiService = {
   getCampaignData: (): Promise<CampaignData[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve([
-          { 
-            id: 'campaign1', 
-            name: 'Summer Fitness Challenge', 
-            owner: 'You',
-            data: { 
-              conversionRate: 4.2, 
-              ctr: 3.1, 
-              cpc: 0.85, 
-              roas: 5.2, 
-              aov: 95, 
-              clv: 280, 
-              cpa: 22,
-              impressions: 150000,
-              clicks: 4650,
-              conversions: 195
-            } 
-          },
-          { 
-            id: 'campaign2', 
-            name: 'Wellness Webinar Series', 
-            owner: 'Marc',
-            data: { 
-              conversionRate: 5.5, 
-              ctr: 3.8, 
-              cpc: 0.72, 
-              roas: 6.1, 
-              aov: 110, 
-              clv: 320, 
-              cpa: 20,
-              impressions: 200000,
-              clicks: 7600,
-              conversions: 418
-            } 
-          },
-          { 
-            id: 'campaign3', 
-            name: 'New Year New You', 
-            owner: 'You',
-            data: { 
-              conversionRate: 6.1, 
-              ctr: 4.2, 
-              cpc: 0.90, 
-              roas: 5.8, 
-              aov: 125, 
-              clv: 350, 
-              cpa: 24,
-              impressions: 250000,
-              clicks: 10500,
-              conversions: 640
-            } 
-          },
-        ]);
+        resolve(mockData.campaigns);
       }, 500);
     });
   }
@@ -141,10 +123,41 @@ const DataChatApp: React.FC = () => {
       setInput('');
       // Simulated response
       setTimeout(() => {
-        setMessages(prev => [...prev, { text: "I'm analyzing your query. Here's what I found in the selected campaign data...", sender: 'bot' }]);
+        const response = generateResponse(input, selectedCampaign);
+        setMessages(prev => [...prev, { text: response, sender: 'bot' }]);
         setIsLoading(false);
       }, 1000);
     }
+  };
+
+  // Add this function to generate responses based on user input and selected campaign
+  const generateResponse = (input: string, campaign: CampaignData | null): string => {
+    if (!campaign) return "Please select a campaign first.";
+
+    const lowercaseInput = input.toLowerCase();
+    
+    if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
+      return `For the ${campaign.name} campaign, here's the OS breakdown:\n\n` +
+        campaign.by_os.map(os => `${os.name}: ${os.clicks} clicks, ${os.cr.toFixed(2)}% CR, $${os.revenue.toFixed(2)} revenue`).join('\n');
+    }
+    
+    if (lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
+      return `For the ${campaign.name} campaign, here's the regional breakdown:\n\n` +
+        campaign.by_region.map(region => `${region.name}: ${region.clicks} clicks, ${region.cr.toFixed(2)}% CR, $${region.revenue.toFixed(2)} revenue`).join('\n');
+    }
+    
+    if (lowercaseInput.includes('performance') || lowercaseInput.includes('overview')) {
+      return `Here's an overview of the ${campaign.name} campaign:\n\n` +
+        `Clicks: ${campaign.clicks}\n` +
+        `CTR: ${campaign.ctr.toFixed(2)}%\n` +
+        `Conversions: ${campaign.cvrs}\n` +
+        `CR: ${campaign.cr.toFixed(2)}%\n` +
+        `Revenue: $${campaign.revenue.toFixed(2)}\n` +
+        `Profit: $${campaign.profit.toFixed(2)}\n` +
+        `ROI: ${campaign.roi.toFixed(2)}%`;
+    }
+    
+    return "I'm sorry, I couldn't understand your query. You can ask about OS breakdown, regional performance, or overall campaign performance.";
   };
 
   const handleInputFocus = () => {
@@ -239,7 +252,7 @@ const DataChatApp: React.FC = () => {
               <FaPercent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.data.conversionRate}%</div>
+              <div className="text-2xl font-bold">{selectedCampaign?.cr.toFixed(2)}%</div>
               <p className="text-xs text-muted-foreground">of total clicks</p>
             </CardContent>
           </Card>
@@ -249,7 +262,7 @@ const DataChatApp: React.FC = () => {
               <FaMousePointer className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.data.ctr}%</div>
+              <div className="text-2xl font-bold">{selectedCampaign?.ctr.toFixed(2)}%</div>
               <p className="text-xs text-muted-foreground">of total impressions</p>
             </CardContent>
           </Card>
@@ -259,38 +272,38 @@ const DataChatApp: React.FC = () => {
               <FaDollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.data.cpc}</div>
+              <div className="text-2xl font-bold">${selectedCampaign?.cpc.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">average cost</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ROAS</CardTitle>
+              <CardTitle className="text-sm font-medium">ROI</CardTitle>
               <FaChartLine className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.data.roas}x</div>
-              <p className="text-xs text-muted-foreground">return on ad spend</p>
+              <div className="text-2xl font-bold">{selectedCampaign?.roi.toFixed(2)}%</div>
+              <p className="text-xs text-muted-foreground">return on investment</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+              <CardTitle className="text-sm font-medium">Avg. Payout</CardTitle>
               <FaDollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.data.aov}</div>
+              <div className="text-2xl font-bold">${selectedCampaign?.avgPayout.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">per conversion</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Customer LTV</CardTitle>
+              <CardTitle className="text-sm font-medium">EPC</CardTitle>
               <FaUsers className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.data.clv}</div>
-              <p className="text-xs text-muted-foreground">lifetime value</p>
+              <div className="text-2xl font-bold">${selectedCampaign?.epc.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">earnings per click</p>
             </CardContent>
           </Card>
         </div>
