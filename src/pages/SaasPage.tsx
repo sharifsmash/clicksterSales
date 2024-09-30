@@ -12,6 +12,7 @@ import DataChatApp from '../components/data-chat-app';
 import { Card, CardContent } from "../components/ui/card";
 import mockData from '../mockdata.json';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
+import { db, storage } from '../firebase';
 
 interface AdMockupProps {
   title: string;
@@ -464,6 +465,22 @@ const SaasPage: React.FC = () => {
     }
 
     setShowResults(true);
+  };
+
+  // Example usage of Firestore
+  const fetchData = async () => {
+    // Firestore query example
+    // const querySnapshot = await getDocs(collection(db, 'your-collection'));
+    // querySnapshot.forEach((doc) => {
+    //   console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+    // });
+  };
+
+  // Example usage of Storage
+  const uploadFile = async (file: File) => {
+    // Storage upload example
+    // const storageRef = ref(storage, 'some-child');
+    // await uploadBytes(storageRef, file);
   };
 
   if (!isLoggedIn) {

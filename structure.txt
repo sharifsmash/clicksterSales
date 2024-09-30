@@ -1,0 +1,176 @@
+.
+├── README.md
+├── build
+│   ├── asset-manifest.json
+│   ├── assets
+│   │   ├── Screen.png
+│   │   ├── adsbuilder
+│   │   ├── affiliatenetworks
+│   │   │   └── icons
+│   │   │       ├── cake.jpg
+│   │   │       ├── clickbooth.jpg
+│   │   │       ├── dmsicon.png
+│   │   │       ├── everflow.png
+│   │   │       ├── hasoffers.jpg
+│   │   │       ├── hitpath.png
+│   │   │       ├── metabase.jpg
+│   │   │       └── metabase.svg
+│   │   ├── ai-ilustration-marketing-1024x663.webp
+│   │   ├── automation.png
+│   │   ├── automations
+│   │   │   └── automatev.svg
+│   │   ├── clicksterlogo.png
+│   │   ├── commandcenter
+│   │   │   ├── commandcenter.png
+│   │   │   ├── creatives.png
+│   │   │   └── mobileapp.png
+│   │   ├── download
+│   │   │   ├── logo-app-store.svg
+│   │   │   └── logo-google-play.svg
+│   │   ├── generating_AI_analysis.png
+│   │   ├── landingpagebuilder
+│   │   │   ├── draganddrop.jpg
+│   │   │   └── frontpage.jpg
+│   │   ├── login.png
+│   │   ├── management.png
+│   │   ├── success.png
+│   │   ├── traffic-sources.webp
+│   │   └── trafficsources
+│   │       └── icons
+│   │           ├── bing.png
+│   │           ├── googleads.webp
+│   │           ├── instagram.png
+│   │           ├── mediago.png
+│   │           ├── mediago.webp
+│   │           ├── meta.png
+│   │           ├── mgid.png
+│   │           ├── outbrain.png
+│   │           ├── revcontent.png
+│   │           ├── taboola.png
+│   │           └── tiktok.png
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   ├── robots.txt
+│   └── static
+│       ├── css
+│       │   ├── main.3fc1f5f4.css
+│       │   └── main.3fc1f5f4.css.map
+│       └── js
+│           ├── 453.4f406999.chunk.js
+│           ├── 453.4f406999.chunk.js.map
+│           ├── main.6e613ca9.js
+│           ├── main.6e613ca9.js.LICENSE.txt
+│           └── main.6e613ca9.js.map
+├── components.json
+├── craco.config.js
+├── next.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── public
+│   ├── assets
+│   │   ├── Screen.png
+│   │   ├── adsbuilder
+│   │   ├── affiliatenetworks
+│   │   │   └── icons
+│   │   │       ├── cake.jpg
+│   │   │       ├── clickbooth.jpg
+│   │   │       ├── dmsicon.png
+│   │   │       ├── everflow.png
+│   │   │       ├── hasoffers.jpg
+│   │   │       ├── hitpath.png
+│   │   │       ├── metabase.jpg
+│   │   │       └── metabase.svg
+│   │   ├── ai-ilustration-marketing-1024x663.webp
+│   │   ├── automation.png
+│   │   ├── automations
+│   │   │   └── automatev.svg
+│   │   ├── clicksterlogo.png
+│   │   ├── commandcenter
+│   │   │   ├── commandcenter.png
+│   │   │   ├── creatives.png
+│   │   │   └── mobileapp.png
+│   │   ├── download
+│   │   │   ├── logo-app-store.svg
+│   │   │   └── logo-google-play.svg
+│   │   ├── generating_AI_analysis.png
+│   │   ├── landingpagebuilder
+│   │   │   ├── draganddrop.jpg
+│   │   │   └── frontpage.jpg
+│   │   ├── login.png
+│   │   ├── management.png
+│   │   ├── success.png
+│   │   ├── traffic-sources.webp
+│   │   └── trafficsources
+│   │       └── icons
+│   │           ├── bing.png
+│   │           ├── googleads.webp
+│   │           ├── instagram.png
+│   │           ├── mediago.png
+│   │           ├── mediago.webp
+│   │           ├── meta.png
+│   │           ├── mgid.png
+│   │           ├── outbrain.png
+│   │           ├── revcontent.png
+│   │           ├── taboola.png
+│   │           └── tiktok.png
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+├── src
+│   ├── App.css
+│   ├── App.test.tsx
+│   ├── App.tsx
+│   ├── components
+│   │   ├── AnimatedList.tsx
+│   │   ├── AnimatedListDemo.tsx
+│   │   ├── MagicButton.tsx
+│   │   ├── QuestionSection.tsx
+│   │   ├── data-chat-app.tsx
+│   │   ├── magicui
+│   │   │   ├── AnimatedGridPattern.tsx
+│   │   │   ├── DotPattern.tsx
+│   │   │   ├── FlickeringGrid.tsx
+│   │   │   ├── Marquee.tsx
+│   │   │   ├── animated-list.tsx
+│   │   │   ├── border-beam.tsx
+│   │   │   ├── shine-border.tsx
+│   │   │   └── shiny-button.tsx
+│   │   └── ui
+│   │       ├── animated-grid-pattern.tsx
+│   │       ├── avatar.tsx
+│   │       ├── border-beam.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── dot-pattern.tsx
+│   │       ├── input.tsx
+│   │       ├── scroll-area.tsx
+│   │       ├── select.tsx
+│   │       ├── shine-border.tsx
+│   │       ├── shiny-button.tsx
+│   │       ├── switch.tsx
+│   │       └── tabs.tsx
+│   ├── image.d.ts
+│   ├── index.css
+│   ├── index.tsx
+│   ├── lib
+│   │   └── utils.ts
+│   ├── logo.svg
+│   ├── mockdata.json
+│   ├── pages
+│   │   └── SaasPage.tsx
+│   ├── react-app-env.d.ts
+│   ├── reportWebVitals.ts
+│   └── setupTests.ts
+├── structure.txt
+├── tailwind.config.js
+├── tsconfig.json
+└── webpack.config.js
+
+32 directories, 142 files
