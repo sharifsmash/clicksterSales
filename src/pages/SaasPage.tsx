@@ -4,10 +4,9 @@ import { AnimatedList } from '../components/magicui/animated-list';
 import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
 import ShinyButton from "../components/magicui/shiny-button";
-// import Image from 'next/image';  // Remove this line
-
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
+import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell } from 'react-icons/fa';
 
 interface AdMockupProps {
   title: string;
@@ -22,35 +21,35 @@ const features = [
     name: "Connect your traffic sources",
     description: "Integrate all your traffic sources in one place",
     time: "5m of work",
-    icon: "💸",
+    icon: <FaMoneyBillWave />,
     color: "#00C9A7",
   },
   {
     name: "Create campaigns in minutes",
     description: "Use our AI to create campaigns that convert",
     time: "2m of work",
-    icon: "👤",
+    icon: <FaUserAlt />,
     color: "#FFB800",
   },
   {
     name: "Create and upload ads",
     description: "Use our AI to create and upload 100's of ads",
     time: "5m of work",
-    icon: "💬",
+    icon: <FaComments />,
     color: "#FF3D71",
   },
   {
     name: "Automate your campaigns",
     description: "Use our AI to optimize your campaigns",
     time: "2m of work",
-    icon: "🗞️",
+    icon: <FaNewspaper />,
     color: "#1E86FF",
   },
   {
     name: "Watch your profits grow",
     description: "Stop worrying about your ads, and start focusing on your business",
     time: "2m of work",
-    icon: "🤖",
+    icon: <FaRobot />,
     color: "#8A2BE2",
   },
 ];
@@ -122,18 +121,11 @@ const Footer: React.FC = () => (
         <div>
           <h3 className="font-semibold text-white mb-4">Integrations</h3>
           <ul className="space-y-2">
-            <li>TikTok Ads</li>
-            <li>Google Ads</li>
-            <li>Facebook/Meta Ads</li>
-            <li>Microsoft/Bing Ads</li>
-            <li>YouTube Ads</li>
-            <li>ClickBank</li>
-            <li>ClickFunnels</li>
-            <li>Taboola</li>
-            <li>MaxBounty</li>
-            <li>Digistore24</li>
-            <li>Shopify</li>
-            <li>WooCommerce</li>
+            <li>Traffic Sources</li>
+            <li>Affiliate Networks</li>
+            <li>CRM</li>
+            <li>Call Tracking</li>
+            
           </ul>
         </div>
         <div>
@@ -161,7 +153,7 @@ const LandingPageFeature: React.FC<{
   description: string;
   isSelected: boolean;
   onSelect: () => void;
-  icon: string;
+  icon: React.ReactNode;  // Changed from string to React.ReactNode
 }> = ({ title, description, isSelected, onSelect, icon }) => (
   <div 
     className={`mb-6 cursor-pointer p-4 rounded-lg transition-colors duration-200 ${
@@ -211,7 +203,7 @@ const PricingCard: React.FC<{
     <h3 className="text-xl font-semibold mb-2">{title}</h3>
     <p className="text-gray-600 mb-4">{description}</p>
     <div className="mb-6">
-      <span className="text-4xl font-bold">US${price}</span>
+      <span className="text-4xl font-bold">${price}</span>
       <span className="text-gray-500">/{period}</span>
     </div>
     <button className={`w-full py-2 px-4 rounded-md mb-6 ${isPopular ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
@@ -258,40 +250,42 @@ const SaasPage: React.FC = () => {
       title: "Create Pages without Code",
       description: "Simply drag and drop elements and customize them to your liking without writing a single line of code",
       image: "/assets/landingpagebuilder/draganddrop.jpg",
-      icon: "🖱️"
+      icon: <FaMouse />
     },
     {
       title: "Translate Pages using AI",
       description: "No more need to hire expensive freelancers to translate your pages. Using the AI translator you can translate to any language in just a few clicks.",
       image: "/assets/landingpagebuilder/translate.jpg",
-      icon: "🌐"
+      icon: <FaGlobe />
     },
     {
       title: "Lead Collection Made Easy",
       description: "Collect leads even if you have no tech skills. Just drag and drop a form from the editor, select what fields you need and you are good to go. Easily integrated with third party email providers like Mailchimp etc.",
       image: "/assets/landingpagebuilder/leadcollection.jpg",
-      icon: "📋"
+      icon: <FaClipboardList />
     },
     {
       title: "Lighting Fast Cloud Hosting",
       description: "Your pages will load super fast all the time. You can send as much traffic as you want and not worry about servers crashing or pages getting slower.",
       image: "/assets/landingpagebuilder/cloudhosting.jpg",
-      icon: "⚡"
+      icon: <FaBolt />
     }
   ];
   return (
     <div className="min-h-screen overflow-hidden relative">
       <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center">
-          <img
-            src="/assets/clicksterlogo.png"
-            alt="Clickster Logo"
-            className="h-10 w-auto"
-          />
+          {/* Updated styling for the logo text with underline */}
+          <h1 className="text-4xl font-extrabold text-gray-900 hover:text-indigo-600 transition duration-300 relative">
+            Clickster
+            <span className="text-indigo-600">Pro</span>
+            <span className="block h-1 w-full bg-indigo-600 mt-1 rounded-md"></span> {/* Underline effect */}
+          </h1>
         </div>
         <ShinyButton className="text-lg px-6 py-2 w-auto">
-          Try for free for one month
+          Free Trial
         </ShinyButton>
+        
       </header>
 
       <main className="w-full px-4 pt-16 pb-28 relative -mt-12">
@@ -300,13 +294,15 @@ const SaasPage: React.FC = () => {
             <div className="text-[3.5rem] font-bold leading-tight mb-4 w-screen overflow-hidden">
               <TypeAnimation
                 sequence={[
-                  'Ad management made easy.',
+                  'Ad creation made easy.',
                   2000,
-                  'Campaigns created effortlessly.',
+                  'Unified Campaign Management.',
                   2000,
-                  'Data analyzed quickly.',
+                  'AI data insights.',
                   2000,
                   'Landing pages created in minutes.',
+                  2000,
+                  'Tracking made great again!',
                   2000,
                 ]}
                 wrapper="span"
@@ -318,10 +314,10 @@ const SaasPage: React.FC = () => {
               <br />
               <span className="text-[#1a202c] text-[4.0rem]">Scaling made simple.</span>
             </div>
-            <p className="text-lg lg:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              A unified tracking & attribution platform seamlessly integrated with all traffic sources and affiliate networks, powered by AI.
+            <p className="text-lg lg:text-xl text-gray-600 mb-8 max-w-2xl mx-auto"> {/* Changed text-gray-700 to text-gray-600 */}
+              Discover the most advanced unified tracking and automation platform. Integrated with top traffic sources and affiliate networks, powered by AI-driven data analysis to maximize your ROI and save you valuable time.
             </p>
-            <div className="mt-10">
+            <div className="mt-[-4px]"> {/* Changed from mt-10 to mt-[-4px] */}
               <div className="flex w-full max-w-[600px] mt-4 mx-auto">
                 <input
                   type="email"
@@ -336,7 +332,7 @@ const SaasPage: React.FC = () => {
           </div>
 
           {/* Image content (2) */}
-          <div className="w-full max-w-4xl mt-[30px]"> {/* Added mt-[30px] here */}
+          <div className="w-full max-w-4xl mt-[44px]"> {/* Changed from mt-[30px] to mt-[44px] */}
             <MagicButton />
           </div>
         </div>
@@ -395,11 +391,20 @@ const SaasPage: React.FC = () => {
           {/* Subsection 2: Creative Management */}
           <div className="flex flex-col lg:flex-row-reverse items-center justify-between -mb-1 mt-12">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
-              <img 
-                src="/assets/commandcenter/creatives.png"
-                alt="Creative Management" 
-                className="w-full max-w-2xl mx-auto"
-              />
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-2xl relative overflow-hidden w-[85%] mx-auto shadow-lg">
+                <AnimatedGridPattern
+                  className="absolute inset-0 opacity-10"
+                  numSquares={20}
+                  duration={30}
+                />
+                <div className="bg-white rounded-xl overflow-hidden">
+                  <img 
+                    src="/assets/commandcenter/creatives.png"
+                    alt="Creative Management" 
+                    className="w-full max-w-xl mx-auto relative z-10"
+                  />
+                </div>
+              </div>
             </div>
             <div className="lg:w-1/2 lg:pr-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Turbocharge Your Ad Creation: Generate 100's of Ads in Just Seconds!</h3>
@@ -416,24 +421,111 @@ const SaasPage: React.FC = () => {
           </div>
 
           {/* Subsection 3: Mobile App */}
-          <div className="flex flex-col lg:flex-row items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-center justify-between mt-12">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
-              <img 
-                src="/assets/commandcenter/mobileapp.png" 
-                alt="Real-time Analytics" 
-                className="w-full max-w-2xl mx-auto max-h-[800px] object-contain"
-              />
+              <div className="bg-gradient-to-br from-indigo-500/30 via-purple-500/30 to-pink-500/30 p-6 rounded-2xl relative overflow-hidden w-[85%] mx-auto shadow-lg">
+                <AnimatedGridPattern
+                  className="absolute inset-0 opacity-10"
+                  numSquares={20}
+                  duration={30}
+                />
+                <div className="bg-white rounded-xl overflow-hidden">
+                  <img 
+                    src="/assets/commandcenter/mobileapp.png" 
+                    alt="Real-time Analytics" 
+                    className="w-full max-w-xl mx-auto max-h-[595px] object-contain relative z-10"
+                  />
+                </div>
+              </div>
             </div>
             <div className="lg:w-1/2 lg:pl-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Manage millions of dollars in ad spend on the go</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Manage thousands to millions of dollars in ad spend on the go</h3>
               <p className="text-lg text-gray-700 mb-6">
-              Clickster Pro's mobile app allows you to manage your campaigns on the go. You can approve creatives, track performance, and make changes to your campaigns from your phone.
+                Clickster Pro's mobile app allows you to manage your campaigns on the go. You can approve creatives, track performance, and make changes to your campaigns from your phone.
               </p>
-              <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
-                View Analytics
+              {/* Replace the button with app download icons */}
+              <div className="mt-4 flex justify-center space-x-4">
+                <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-10" />
+                <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-10" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Automations Section */}
+      <section className="bg-gradient-to-b from-indigo-50 to-white py-16 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Automate{' '}
+              <TypeAnimation
+                sequence={[
+                  'Campaign Budgets & Schedules',
+                  2000,
+                  'Placement Bids',
+                  2000,
+                  'Ads Status',
+                  2000,
+                  'Placement Status',
+                  2000,
+                  'Offer and Landing Page Distribution',
+                  2000,
+                ]}
+                wrapper="span"
+                speed={50}
+                repeat={Infinity}
+                className="text-indigo-600"
+              />
+            </h2>
+            <p className="text-xl text-gray-700 mt-4"> {/* Updated to emphasize money-making and time savings */}
+              Streamline your workflow and boost efficiency with our advanced automation tools that not only save you time but also enhance your profitability by optimizing your marketing efforts.
+            </p>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-center justify-between">
+            <div className="lg:w-1/2 mb-8 lg:mb-0">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/50 to-purple-500/50 opacity-75 rounded-lg transform -rotate-2 scale-105"></div>
+                <img
+                  src="/assets/automation.png"
+                  alt="Automations Illustration"
+                  className="w-full max-w-2xl mx-auto relative z-10 rounded-lg shadow-2xl"
+                />
+              </div>
+            </div>
+            <div className="lg:w-1/2 lg:pl-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Automate Your Marketing Workflow</h3>
+              <ul className="space-y-4">
+                {[
+                  { icon: <FaMoneyBillWave />, title: "Cost integration", description: "Update the costs of your traffic sources automatically." },
+                  { icon: <FaChartLine />, title: "Automation rules", description: "Set if/then rules to auto-optimize your campaign setup." },
+                  { icon: <FaGavel />, title: "Bid changing", description: "Change your traffic source bid values straight from the ad tracker." },
+                  { icon: <FaPauseCircle />, title: "Campaign pausing", description: "Pause and resume entire campaigns or their elements." },
+                  { icon: <FaBan />, title: "Blacklists & whitelists", description: "Create blacklists & whitelists of creatives, sites, widgets, zones, etc." },
+                  { icon: <FaBell />, title: "Custom alerts", description: "Know immediately when something changes in your campaigns." },
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-2xl mr-4 text-orange-300">{item.icon}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                      <p className="text-gray-700">{item.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button className="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
+                Explore Automations
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path d="M0,0 C200,1000 800,1000 1000,0" fill="rgba(79, 70, 229, 0.03)" />
+          </svg>
         </div>
       </section>
 
@@ -464,6 +556,19 @@ const SaasPage: React.FC = () => {
                 alt="AI-powered marketing illustration"
                 className="rounded-lg w-full h-auto"
               />
+            </div>
+          </div>
+          {/* Updated Search Box with Glowy Effect */}
+          <div className="mt-8 flex justify-center">
+            <div className="relative w-full max-w-2xl">
+              <input
+                type="text"
+                placeholder="Ask me about your ads, campaigns, offers, and other marketing stuff"
+                className="w-full bg-white border border-transparent rounded-full py-4 px-6 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 transition duration-300 glow-effect shiny-border text-gray-800 placeholder-gray-500"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <FaBrain className="h-5 w-5 text-indigo-600" />
+              </div>
             </div>
           </div>
         </div>
@@ -726,15 +831,15 @@ const SaasPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {[
-              { icon: "🧠", title: "AI Optimization" },
-              { icon: "🕸️", title: "Bot Filter" },
-              { icon: "📱", title: "Fastest Redirects" },
-              { icon: "📈", title: "Auto-Scaling" },
-              { icon: "🌐", title: "Control Your Domains" },
-              { icon: "🛠️", title: "World-Class Support" },
-              { icon: "🖼️", title: "LP Pixel" },
-              { icon: "🔧", title: "Funnel Support" },
-              { icon: "👥", title: "Multi-User Access" },
+              { icon: <FaBrain />, title: "AI Optimization" },
+              { icon: <FaSpider />, title: "Bot Filter" },
+              { icon: <FaMobileAlt />, title: "Fastest Redirects" },
+              { icon: <FaChartLine />, title: "Auto-Scaling" },
+              { icon: <FaGlobeAmericas />, title: "Control Your Domains" },
+              { icon: <FaTools />, title: "World-Class Support" },
+              { icon: <FaImage />, title: "LP Pixel" },
+              { icon: <FaWrench />, title: "Funnel Support" },
+              { icon: <FaUsers />, title: "Multi-User Access" },
             ].map((feature, index) => (
               <div key={index} className="flex flex-col items-center text-center">
                 <div className="text-4xl mb-4">{feature.icon}</div>
@@ -777,8 +882,8 @@ const SaasPage: React.FC = () => {
               ]}
             />
             <PricingCard
-              title="Premium"
-              price={isYearlyPricing ? 190 : 19}
+              title="Pro"
+              price={isYearlyPricing ? 299 : 349} // Updated yearly price to 299
               period={isYearlyPricing ? "year" : "month"}
               description="For teams that need to create project plans with confidence."
               features={[
@@ -796,7 +901,7 @@ const SaasPage: React.FC = () => {
             />
             <PricingCard
               title="Business"
-              price={isYearlyPricing ? 490 : 49}
+              price={isYearlyPricing ? 490 : 49} // Updated yearly price to 490
               period={isYearlyPricing ? "year" : "month"}
               description="For teams and companies that need to manage work across initiatives."
               features={[
