@@ -6,7 +6,9 @@ import { TypeAnimation } from 'react-type-animation';
 import ShinyButton from "../components/magicui/shiny-button";
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
+import QuestionSection from '../components/QuestionSection'; // Import the new component
 import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell } from 'react-icons/fa';
+import DataChatApp from '../components/data-chat-app';
 
 interface AdMockupProps {
   title: string;
@@ -141,8 +143,8 @@ const Footer: React.FC = () => (
         </div>
       </div>
       <div className="mt-12 flex justify-end space-x-4">
-        <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-10" />
-        <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-10" />
+        <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-15" /> {/* Changed from h-10 to h-15 */}
+        <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-15" /> {/* Changed from h-10 to h-15 */}
       </div>
     </div>
   </footer>
@@ -225,6 +227,7 @@ const PricingCard: React.FC<{
 const SaasPage: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isYearlyPricing, setIsYearlyPricing] = useState(true);
+  const [question, setQuestion] = useState(''); // New state for the question
 
   const typeAnimationRef = useRef<HTMLSpanElement>(null);
 
@@ -288,7 +291,7 @@ const SaasPage: React.FC = () => {
         
       </header>
 
-      <main className="w-full px-4 pt-16 pb-28 relative -mt-12">
+      <main className="w-full px-4 pt-16 pb-28 relative -mt-12 bg-gradient-to-b from-white via-indigo-50 to-gray-100">
         <div className="relative z-10 flex flex-col items-center">
           <div className="w-full mb-8 text-center">
             <div className="text-[3.5rem] font-bold leading-tight mb-4 w-screen overflow-hidden">
@@ -314,10 +317,10 @@ const SaasPage: React.FC = () => {
               <br />
               <span className="text-[#1a202c] text-[4.0rem]">Scaling made simple.</span>
             </div>
-            <p className="text-lg lg:text-xl text-gray-600 mb-8 max-w-2xl mx-auto"> {/* Changed text-gray-700 to text-gray-600 */}
+            <p className="text-lg lg:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Discover the most advanced unified tracking and automation platform. Integrated with top traffic sources and affiliate networks, powered by AI-driven data analysis to maximize your ROI and save you valuable time.
             </p>
-            <div className="mt-[-4px]"> {/* Changed from mt-10 to mt-[-4px] */}
+            <div className="mt-[-4px]">
               <div className="flex w-full max-w-[600px] mt-4 mx-auto">
                 <input
                   type="email"
@@ -331,8 +334,7 @@ const SaasPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Image content (2) */}
-          <div className="w-full max-w-4xl mt-[44px]"> {/* Changed from mt-[30px] to mt-[44px] */}
+          <div className="w-full max-w-4xl mt-[44px]">
             <MagicButton />
           </div>
         </div>
@@ -443,10 +445,10 @@ const SaasPage: React.FC = () => {
               <p className="text-lg text-gray-700 mb-6">
                 Clickster Pro's mobile app allows you to manage your campaigns on the go. You can approve creatives, track performance, and make changes to your campaigns from your phone.
               </p>
-              {/* Replace the button with app download icons */}
+              {/* Updated app download icons */}
               <div className="mt-4 flex justify-center space-x-4">
-                <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-10" />
-                <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-10" />
+                <img src="/assets/download/logo-app-store.svg" alt="Download on the App Store" className="h-15" /> {/* Changed from h-10 to h-15 */}
+                <img src="/assets/download/logo-google-play.svg" alt="Get it on Google Play" className="h-15" /> {/* Changed from h-10 to h-15 */}
               </div>
             </div>
           </div>
@@ -478,7 +480,7 @@ const SaasPage: React.FC = () => {
                 className="text-indigo-600"
               />
             </h2>
-            <p className="text-xl text-gray-700 mt-4"> {/* Updated to emphasize money-making and time savings */}
+            <p className="text-xl text-gray-700 mt-4">
               Streamline your workflow and boost efficiency with our advanced automation tools that not only save you time but also enhance your profitability by optimizing your marketing efforts.
             </p>
           </div>
@@ -558,21 +560,18 @@ const SaasPage: React.FC = () => {
               />
             </div>
           </div>
-          {/* Updated Search Box with Glowy Effect */}
-          <div className="mt-8 flex justify-center">
-            <div className="relative w-full max-w-2xl">
-              <input
-                type="text"
-                placeholder="Ask me about your ads, campaigns, offers, and other marketing stuff"
-                className="w-full bg-white border border-transparent rounded-full py-4 px-6 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 transition duration-300 glow-effect shiny-border text-gray-800 placeholder-gray-500"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <FaBrain className="h-5 w-5 text-indigo-600" />
-              </div>
-            </div>
+          {/* Data Chat App Integration */}
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              Ask Our AI About Your Marketing Campaigns
+            </h3>
+            <DataChatApp />
           </div>
         </div>
       </section>
+
+      {/* Add the QuestionSection component here */}
+      <QuestionSection question={question} /> {/* Pass the question state to QuestionSection */}
 
       <section className="bg-white py-12">
         <div className="container-fluid px-0">
