@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Select, SelectItem } from "./ui/select";
-import { Switch } from "./ui/switch";
-// Update the import statement
-import { FaSun, FaMoon, FaPercent, FaMousePointer, FaDollarSign, FaChartLine, FaUsers } from 'react-icons/fa';
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { FaPercent, FaMousePointer, FaDollarSign, FaChartLine } from 'react-icons/fa';
 import mockData from '../mockdata.json';
 
-// Update the CampaignData interface
+// Update the import statement
 interface CampaignData {
   id: string;
   name: string;
@@ -67,101 +64,124 @@ interface Message {
   sender: 'user' | 'bot';
 }
 
-const mockApiService = {
-  getCampaignData: (): Promise<CampaignData[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockData.campaigns);
-      }, 500);
-    });
-  }
-};
+interface DataChatAppProps {
+  onSearchComplete: (result: string) => void;
+}
 
-const DataChatApp: React.FC = () => {
+const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
-  const [selectedCampaign, setSelectedCampaign] = useState<CampaignData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [expandedHeight, setExpandedHeight] = useState('60px');
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const campaignData = await mockApiService.getCampaignData();
-        setCampaigns(campaignData);
-        setSelectedCampaign(campaignData[0]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-
-    const handleScroll = () => {
-      if (chatRef.current) {
-        const chatTop = chatRef.current.getBoundingClientRect().top;
-        setIsSticky(chatTop <= 0);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
 
   const handleSend = async () => {
     if (input.trim()) {
       setIsLoading(true);
-      setMessages(prev => [...prev, { text: input, sender: 'user' }]);
+      const newMessage = { text: input, sender: 'user' as const };
+      setMessages(prev => [...prev, newMessage]);
       setInput('');
       // Simulated response
       setTimeout(() => {
-        const response = generateResponse(input, selectedCampaign);
-        setMessages(prev => [...prev, { text: response, sender: 'bot' }]);
+        const response = generateResponse(input, mockData.campaigns);
+        const newBotMessage = { text: response, sender: 'bot' as const };
+        setMessages(prev => [...prev, newBotMessage]);
         setIsLoading(false);
+        onSearchComplete(response);
+        
+        // Calculate new height based on content
+        const newHeight = Math.min((messages.length + 2) * 60, 700); // 60px per message, max 700px
+        setExpandedHeight(`${newHeight}px`);
       }, 1000);
     }
   };
 
-  // Add this function to generate responses based on user input and selected campaign
-  const generateResponse = (input: string, campaign: CampaignData | null): string => {
-    if (!campaign) return "Please select a campaign first.";
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('en-US');
+  };
 
+  const generateResponse = (input: string, campaigns: CampaignData[]): string => {
     const lowercaseInput = input.toLowerCase();
     
-    if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
-      return `For the ${campaign.name} campaign, here's the OS breakdown:\n\n` +
-        campaign.by_os.map(os => `${os.name}: ${os.clicks} clicks, ${os.cr.toFixed(2)}% CR, $${os.revenue.toFixed(2)} revenue`).join('\n');
+    if (lowercaseInput.includes('turn off') && lowercaseInput.includes('losing money') && lowercaseInput.includes('region')) {
+      let response = "Here are the regions that are losing money and should be considered for turning off:\n\n";
+      let hasLosingRegions = false;
+
+      campaigns.forEach(campaign => {
+        const losingRegions = campaign.by_region.filter(region => region.profit < 0);
+        if (losingRegions.length > 0) {
+          hasLosingRegions = true;
+          response += `${campaign.name} campaign:\n`;
+          losingRegions.forEach(region => {
+            response += `- ${region.name}: Profit: $${formatNumber(region.profit)}, ROI: ${region.roi.toFixed(2)}%\n`;
+          });
+          response += '\n';
+        }
+      });
+
+      if (!hasLosingRegions) {
+        return "Good news! There are no regions currently losing money across all campaigns.";
+      }
+
+      return response.trim();
     }
     
-    if (lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
-      return `For the ${campaign.name} campaign, here's the regional breakdown:\n\n` +
-        campaign.by_region.map(region => `${region.name}: ${region.clicks} clicks, ${region.cr.toFixed(2)}% CR, $${region.revenue.toFixed(2)} revenue`).join('\n');
+    if (lowercaseInput.includes('regional') || lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
+      let response = "Here's the regional information for each campaign:\n\n";
+      
+      campaigns.forEach(campaign => {
+        response += `${campaign.name} campaign:\n`;
+        campaign.by_region.forEach(region => {
+          response += `- ${region.name}: ${formatNumber(region.clicks)} clicks, ${region.cr.toFixed(2)}% CR, $${formatNumber(region.revenue)} revenue\n`;
+        });
+        response += '\n';
+      });
+      
+      return response.trim();
+    }
+    
+    if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
+      return `For the ${campaigns[0].name} campaign, here's the OS breakdown:\n\n` +
+        campaigns[0].by_os.map(os => 
+          `${os.name}: ${formatNumber(os.clicks)} clicks, ${os.cr.toFixed(2)}% CR, $${formatNumber(os.revenue)} revenue`
+        ).join('\n');
     }
     
     if (lowercaseInput.includes('performance') || lowercaseInput.includes('overview')) {
-      return `Here's an overview of the ${campaign.name} campaign:\n\n` +
-        `Clicks: ${campaign.clicks}\n` +
-        `CTR: ${campaign.ctr.toFixed(2)}%\n` +
-        `Conversions: ${campaign.cvrs}\n` +
-        `CR: ${campaign.cr.toFixed(2)}%\n` +
-        `Revenue: $${campaign.revenue.toFixed(2)}\n` +
-        `Profit: $${campaign.profit.toFixed(2)}\n` +
-        `ROI: ${campaign.roi.toFixed(2)}%`;
+      return `Here's an overview of the ${campaigns[0].name} campaign:\n\n` +
+        `Clicks: ${formatNumber(campaigns[0].clicks)}\n` +
+        `CTR: ${campaigns[0].ctr.toFixed(2)}%\n` +
+        `Conversions: ${formatNumber(campaigns[0].cvrs)}\n` +
+        `CR: ${campaigns[0].cr.toFixed(2)}%\n` +
+        `Revenue: $${formatNumber(campaigns[0].revenue)}\n` +
+        `Spent: $${formatNumber(campaigns[0].spent)}\n` +
+        `Profit: $${formatNumber(campaigns[0].profit)}\n` +
+        `ROI: ${campaigns[0].roi.toFixed(2)}%\n` +
+        `EPC: $${campaigns[0].epc.toFixed(2)}\n` +
+        `CPC: $${campaigns[0].cpc.toFixed(2)}\n` +
+        `eCPA: $${campaigns[0].ecpa.toFixed(2)}\n` +
+        `Avg. Payout: $${campaigns[0].avgPayout.toFixed(2)}`;
     }
     
-    return "I'm sorry, I couldn't understand your query. You can ask about OS breakdown, regional performance, or overall campaign performance.";
-  };
-
-  const handleInputFocus = () => {
-    setIsExpanded(true);
+    if (lowercaseInput.includes('best') || lowercaseInput.includes('top')) {
+      if (lowercaseInput.includes('os') || lowercaseInput.includes('operating system')) {
+        const bestOS = campaigns[0].by_os.reduce((prev, current) => (current.revenue > prev.revenue) ? current : prev);
+        return `The best performing OS for the ${campaigns[0].name} campaign is ${bestOS.name}:\n\n` +
+               `Clicks: ${formatNumber(bestOS.clicks)}\n` +
+               `CR: ${bestOS.cr.toFixed(2)}%\n` +
+               `Revenue: $${formatNumber(bestOS.revenue)}`;
+      }
+      if (lowercaseInput.includes('region') || lowercaseInput.includes('location')) {
+        const bestRegion = campaigns[0].by_region.reduce((prev, current) => (current.revenue > prev.revenue) ? current : prev);
+        return `The best performing region for the ${campaigns[0].name} campaign is ${bestRegion.name}:\n\n` +
+               `Clicks: ${formatNumber(bestRegion.clicks)}\n` +
+               `CR: ${bestRegion.cr.toFixed(2)}%\n` +
+               `Revenue: $${formatNumber(bestRegion.revenue)}`;
+      }
+    }
+    
+    return "I'm sorry, I couldn't understand your query. You can ask about regions losing money, OS breakdown, regional performance, overall campaign performance, or the best performing OS/region.";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -171,164 +191,65 @@ const DataChatApp: React.FC = () => {
     }
   };
 
-  const handleCampaignChange = (campaignId: string) => {
-    const campaign = campaigns.find(c => c.id === campaignId);
-    if (campaign) {
-      setSelectedCampaign(campaign);
-    }
-  };
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   };
 
-  return (
-    <div className={`container mx-auto p-4 min-h-screen flex flex-col items-center justify-start pt-10 ${isDarkMode ? 'dark' : ''}`}>
-      <div className="w-full max-w-2xl flex justify-end mb-4">
-        <div className="flex items-center space-x-2">
-          <FaSun className="h-4 w-4" />
-          <Switch checked={isDarkMode} onChange={toggleDarkMode} />
-          <FaMoon className="h-4 w-4" />
-        </div>
+  const renderMessage = (message: Message, index: number) => (
+    <div key={index} className="flex mb-4">
+      <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'ml-auto' : 'mr-auto'}`} style={{maxWidth: message.sender === 'user' ? '33%' : '66%'}}>
+        {message.sender === 'user' && (
+          <div className={`p-3 rounded-lg shadow bg-primary text-primary-foreground`}>
+            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+          </div>
+        )}
+        <Avatar className="w-8 h-8">
+          <AvatarImage src={message.sender === 'user' ? "/assets/user-avatar.png" : "/assets/ai-avatar.png"} alt={message.sender === 'user' ? "User" : "AI"} />
+          <AvatarFallback>{message.sender === 'user' ? "U" : "AI"}</AvatarFallback>
+        </Avatar>
+        {message.sender === 'bot' && (
+          <div className={`p-3 rounded-lg shadow bg-muted`}>
+            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+          </div>
+        )}
       </div>
-      <div ref={chatRef} className={`w-full max-w-2xl ${isSticky ? 'sticky top-0 z-10 bg-background pt-4' : ''}`}>
-        <Card className={`transition-all duration-300 ease-in-out ${isExpanded ? 'h-[60vh]' : 'h-16'}`}>
-          <CardContent className="p-0 h-full flex flex-col">
-            {isExpanded && (
-              <ScrollArea className="flex-grow p-4">
-                {messages.map((message, index) => (
-                  <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                    <span className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      {message.text}
-                    </span>
+    </div>
+  );
+
+  return (
+    <div className="w-full max-w-4xl">
+      <div ref={chatRef}>
+        <Card className={`transition-all duration-300 ease-in-out h-[600px]`}>
+          <CardContent className="p-4 h-full flex flex-col">
+            <ScrollArea className="flex-grow mb-4">
+              {messages.map((message, index) => renderMessage(message, index))}
+              {isLoading && (
+                <div className="flex justify-start mb-4">
+                  <div className="flex items-start space-x-2 max-w-[66%]">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src="/assets/ai-avatar.png" alt="AI" />
+                      <AvatarFallback>AI</AvatarFallback>
+                    </Avatar>
+                    <div className="p-3 rounded-lg shadow bg-muted">
+                      <p className="text-sm">Analyzing...</p>
+                    </div>
                   </div>
-                ))}
-                {isLoading && (
-                  <div className="text-left">
-                    <span className="inline-block p-2 rounded-lg bg-muted">Analyzing...</span>
-                  </div>
-                )}
-              </ScrollArea>
-            )}
-            <div className="p-4 flex space-x-2">
+                </div>
+              )}
+            </ScrollArea>
+            <div className="flex space-x-2">
               <Input
                 ref={inputRef}
-                className={`flex-grow transition-all duration-300 ease-in-out ${!isExpanded && !isSticky ? 'shadow-[0_0_15px_rgba(59,130,246,0.5)]' : ''}`}
+                className="flex-grow"
                 placeholder="Ask about campaign data or marketing KPIs..."
                 value={input}
                 onChange={handleInputChange}
-                onFocus={handleInputFocus}
                 onKeyPress={handleKeyPress}
               />
               <Button onClick={handleSend} disabled={isLoading}>Send</Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="w-full max-w-2xl mt-8">
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Campaign Selection</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select onValueChange={handleCampaignChange} value={selectedCampaign?.id}>
-              {campaigns.map(campaign => (
-                <SelectItem key={campaign.id} value={campaign.id}>
-                  {campaign.name} ({campaign.owner})
-                </SelectItem>
-              ))}
-            </Select>
-          </CardContent>
-        </Card>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              <FaPercent className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.cr.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">of total clicks</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
-              <FaMousePointer className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.ctr.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">of total impressions</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cost Per Click</CardTitle>
-              <FaDollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.cpc.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">average cost</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ROI</CardTitle>
-              <FaChartLine className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{selectedCampaign?.roi.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">return on investment</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Payout</CardTitle>
-              <FaDollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.avgPayout.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">per conversion</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">EPC</CardTitle>
-              <FaUsers className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${selectedCampaign?.epc.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">earnings per click</p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campaign Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-[200px] bg-gray-200 flex items-center justify-center">
-                Chart Placeholder
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Cost vs. Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-[200px] bg-gray-200 flex items-center justify-center">
-                Chart Placeholder
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

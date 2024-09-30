@@ -9,6 +9,8 @@ import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
 import QuestionSection from '../components/QuestionSection'; // Import the new component
 import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import { FaPercent, FaMousePointer, FaDollarSign } from 'react-icons/fa';
 
 interface AdMockupProps {
   title: string;
@@ -228,6 +230,8 @@ const SaasPage: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const [isYearlyPricing, setIsYearlyPricing] = useState(true);
   const [question, setQuestion] = useState(''); // New state for the question
+  const [showCards, setShowCards] = useState(false);
+  const [chatResult, setChatResult] = useState('');
 
   const typeAnimationRef = useRef<HTMLSpanElement>(null);
 
@@ -534,38 +538,69 @@ const SaasPage: React.FC = () => {
       {/* AI-powered marketing solutions section */}
       <section className="bg-gradient-to-b from-white to-indigo-50 py-16">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center justify-between">
-            <div className="lg:w-1/2 order-2 lg:order-1">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                AI-Powered Marketing Solutions
-              </h2>
-              <p className="text-lg text-gray-700 mb-6">
-                Harness the power of artificial intelligence to revolutionize your marketing campaigns. Our platform uses cutting-edge AI technology to optimize your ad performance, target the right audience, and maximize your ROI.
-              </p>
-              <ul className="list-disc list-inside text-lg text-gray-700 mb-8">
-                <li>Automated ad creation and optimization</li>
-                <li>Intelligent audience targeting</li>
-                <li>Predictive analytics for campaign performance</li>
-                <li>Real-time adjustments for maximum efficiency</li>
-              </ul>
-              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
-                Explore AI Features
-              </button>
-            </div>
-            <div className="lg:w-1/2 mb-8 lg:mb-0 order-1 lg:order-2">
-              <img
-                src="/assets/ai-ilustration-marketing-1024x663.webp"
-                alt="AI-powered marketing illustration"
-                className="rounded-lg w-full h-auto"
+          <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+            AI-Powered Marketing Solutions
+          </h2>
+          
+          <div className="flex flex-col lg:flex-row items-start justify-between">
+            {/* AI Chat App */}
+            <div className="lg:w-2/3 pr-4">
+              <DataChatApp 
+                onSearchComplete={(result) => {
+                  console.log(result);
+                  setShowCards(true);
+                  setChatResult(result);
+                }} 
               />
             </div>
-          </div>
-          {/* Data Chat App Integration */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-              Ask Our AI About Your Marketing Campaigns
-            </h3>
-            <DataChatApp />
+
+            {/* Results Cards */}
+            {showCards && (
+              <div className="lg:w-1/3 pl-4 mt-8 lg:mt-0">
+                <div className="grid grid-cols-1 gap-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                      <FaPercent className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">4.45%</div>
+                      <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
+                      <FaMousePointer className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">2.74%</div>
+                      <p className="text-xs text-muted-foreground">+10.5% from last month</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Cost Per Click</CardTitle>
+                      <FaDollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">$0.78</div>
+                      <p className="text-xs text-muted-foreground">-5.2% from last month</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                      <FaChartLine className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">215%</div>
+                      <p className="text-xs text-muted-foreground">+18.3% from last month</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

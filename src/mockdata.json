@@ -18,7 +18,7 @@
   "campaigns": [
     {
       "id": "campaign1",
-      "name": "Summer Fitness Challenge",
+      "name": "Auto Insurance",
       "owner": "You",
       "clicks": 48904,
       "offerClicks": 13402,
@@ -136,8 +136,8 @@
     },
     {
       "id": "campaign2",
-      "name": "Wellness Webinar Series",
-      "owner": "Marc",
+      "name": "Life Insurance",
+      "owner": "Ali",
       "clicks": 10158,
       "offerClicks": 1563,
       "ctr": 15.39,
@@ -222,7 +222,7 @@
     },
     {
       "id": "campaign3",
-      "name": "New Year New You",
+      "name": "Medicare Supplement",
       "owner": "You",
       "clicks": 20688,
       "offerClicks": 3578,
