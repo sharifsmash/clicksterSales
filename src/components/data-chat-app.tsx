@@ -164,15 +164,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     }));
   };
 
-  const getCampaignOSData = (campaignId: string): OSData[] => {
-    const campaign = mockData.campaigns.find(c => c.id === campaignId);
-    return campaign ? campaign.by_os.map(os => ({
-      os: os.name,
-      campaignId: campaignId,
-      metrics: os
-    })) : [];
-  };
-
   const getCampaignRegionData = (campaignId: string): RegionData[] => {
     const campaign = mockData.campaigns.find(c => c.id === campaignId);
     return campaign ? campaign.by_region.map(region => ({
@@ -198,16 +189,18 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     let dataType: 'all' | 'regional' | 'os' = 'all';
     let specificData: (OSData | RegionData)[] | null = null;
 
-    if (input.toLowerCase().includes('os') || input.toLowerCase().includes('operating system')) {
-      dataType = 'os';
-      campaignName = getCampaignName(input, campaigns);
-      if (campaignName) {
-        const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase());
-        if (campaign) {
-          specificData = getCampaignOSData(campaign.id);
-        }
-      }
-    } else if (input.toLowerCase().includes('region') || input.toLowerCase().includes('location')) {
+    // Remove or comment out this entire block
+    // if (input.toLowerCase().includes('os') || input.toLowerCase().includes('operating system')) {
+    //   dataType = 'os';
+    //   campaignName = getCampaignName(input, campaigns);
+    //   if (campaignName) {
+    //     const campaign = campaigns.find(c => c.name.toLowerCase() === campaignName?.toLowerCase());
+    //     if (campaign) {
+    //       specificData = getCampaignOSData(campaign.id);
+    //     }
+    //   }
+    // } else 
+    if (input.toLowerCase().includes('region') || input.toLowerCase().includes('location')) {
       dataType = 'regional';
       campaignName = getCampaignName(input, campaigns);
       if (campaignName) {
@@ -234,9 +227,9 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     response += `Average Payout: $${formatNumber(validatedData.avgPayout)}\n`;
 
     if (specificData) {
-      response += `\n${dataType === 'os' ? 'OS' : 'Regional'} breakdown:\n`;
+      response += `\nRegional breakdown:\n`;
       specificData.forEach(item => {
-        response += `\n${dataType === 'os' ? (item as OSData).os : (item as RegionData).region}:\n`;
+        response += `\n${(item as RegionData).region}:\n`;
         response += `  Clicks: ${formatNumber(item.metrics.clicks, true)}\n`;
         response += `  Revenue: $${formatNumber(item.metrics.revenue)}\n`;
         response += `  Profit: $${formatNumber(item.metrics.profit)}\n`;
@@ -349,66 +342,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     setInput(e.target.value);
   };
 
-  const renderMessage = (message: Message, index: number) => {
-    return (
-      <div key={index} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-        <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`} style={{maxWidth: '66%'}}>
-          <Avatar className="w-8 h-8 flex-shrink-0">
-            {message.sender === 'user' ? (
-              <AvatarImage src="/assets/user-avatar.png" alt="User" />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
-                <RiRobot2Line size={20} />
-              </div>
-            )}
-            <AvatarFallback>{message.sender === 'user' ? "U" : ""}</AvatarFallback>
-          </Avatar>
-          <div className={`p-3 rounded-lg shadow ${message.sender === 'user' ? 'bg-gradient-to-r from-purple-400 to-blue-500 text-white' : 'bg-gray-100'}`}>
-            <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const getRegionsWithHighROI = (data: any): Region[] => {
-    return data.campaigns
-      .filter((campaign: any) => campaign.name === 'Auto Insurance')
-      .flatMap((campaign: any) => campaign.by_region)
-      .filter((region: any) => region.roi >= 25)
-      .map((region: any) => ({ 
-        name: region.name, 
-        roi: region.roi, 
-        profit: region.profit,
-        avgPayout: region.avgPayout,
-        spent: region.spent,
-        cr: region.cr,
-        cpc: region.cpc,
-        revenue: region.revenue,
-        ctr: region.ctr
-      }));
-  };
-
-  const getRegionsWithNegativeROI = (data: any): Region[] => {
-    return data.campaigns
-      .filter((campaign: any) => campaign.name === 'Auto Insurance')
-      .flatMap((campaign: any) => campaign.by_region)
-      .filter((region: any) => region.roi < 0 && Math.abs(region.profit) >= 100)
-      .map((region: any) => ({ 
-        name: region.name, 
-        roi: region.roi, 
-        profit: region.profit,
-        avgPayout: region.avgPayout,
-        spent: region.spent,
-        cr: region.cr,
-        cpc: region.cpc,
-        revenue: region.revenue,
-        ctr: region.ctr
-      }));
-  };
-
   const handleConversationStarter = (starter: string) => {
-    setInput(starter);
     if (starter === "What Regions for Auto Insurance have earned 25% ROI or better in the last 30 days?") {
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
@@ -508,6 +442,64 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     }
   };
 
+  const renderMessage = (message: Message, index: number) => {
+    return (
+      <div key={index} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`} style={{maxWidth: '66%'}}>
+          <Avatar className="w-8 h-8 flex-shrink-0">
+            {message.sender === 'user' ? (
+              <AvatarImage src="/assets/ninja_avatar.png" alt="User" />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
+                <RiRobot2Line size={20} />
+              </div>
+            )}
+            <AvatarFallback>{message.sender === 'user' ? "" : ""}</AvatarFallback>
+          </Avatar>
+          <div className={`p-3 rounded-lg shadow ${message.sender === 'user' ? 'bg-gradient-to-r from-purple-400 to-blue-500 text-white' : 'bg-gray-100'}`}>
+            <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getRegionsWithHighROI = (data: any): Region[] => {
+    return data.campaigns
+      .filter((campaign: any) => campaign.name === 'Auto Insurance')
+      .flatMap((campaign: any) => campaign.by_region)
+      .filter((region: any) => region.roi >= 25)
+      .map((region: any) => ({ 
+        name: region.name, 
+        roi: region.roi, 
+        profit: region.profit,
+        avgPayout: region.avgPayout,
+        spent: region.spent,
+        cr: region.cr,
+        cpc: region.cpc,
+        revenue: region.revenue,
+        ctr: region.ctr
+      }));
+  };
+
+  const getRegionsWithNegativeROI = (data: any): Region[] => {
+    return data.campaigns
+      .filter((campaign: any) => campaign.name === 'Auto Insurance')
+      .flatMap((campaign: any) => campaign.by_region)
+      .filter((region: any) => region.roi < 0 && Math.abs(region.profit) >= 100)
+      .map((region: any) => ({ 
+        name: region.name, 
+        roi: region.roi, 
+        profit: region.profit,
+        avgPayout: region.avgPayout,
+        spent: region.spent,
+        cr: region.cr,
+        cpc: region.cpc,
+        revenue: region.revenue,
+        ctr: region.ctr
+      }));
+  };
+
   const clearChat = () => {
     setMessages([]);
     setChatHeight('auto');
@@ -520,7 +512,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     const mockFirestoreData = {
       overallStats: getOverallStats(),
       campaigns: getCampaigns(),
-      osData: getCampaigns().map(campaign => getCampaignOSData(campaign.id)),
       regionData: getCampaigns().map(campaign => getCampaignRegionData(campaign.id))
     };
     setFirestoreData(mockFirestoreData);
@@ -607,12 +598,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           className="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors duration-300"
         >
           Auto Insurance Negative ROI Regions
-        </button>
-        <button
-          onClick={() => handleConversationStarter("OS by campaign")}
-          className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 transition-colors duration-300"
-        >
-          OS by campaign
         </button>
         <button
           onClick={clearChat}

@@ -5,7 +5,6 @@ import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
-import QuestionSection from '../components/QuestionSection'; // Import the new component
 import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign, FaPhone, FaRandom, FaChartBar, FaExchangeAlt } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
 import { Card, CardContent } from "../components/ui/card";
@@ -755,6 +754,33 @@ const SaasPage: React.FC = () => {
       <section className="bg-gradient-to-b from-white to-indigo-50 py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-start justify-between">
+            <div className="lg:w-1/2 mb-8 lg:mb-0">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                AI-Powered Marketing Solutions
+              </h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Harness the power of artificial intelligence to revolutionize your marketing campaigns. Our platform uses cutting-edge AI technology to optimize your ad performance, target the right audience, and maximize your ROI.
+              </p>
+              <ul className="list-disc list-inside text-lg text-gray-700 mb-8">
+                <li>Automated ad creation and optimization</li>
+                <li>Intelligent audience targeting</li>
+                <li>Predictive analytics for campaign performance</li>
+                <li>Real-time adjustments for maximum efficiency</li>
+              </ul>
+              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
+                Explore AI Features
+              </button>
+            </div>
+            <div className="lg:w-1/2 mb-8 lg:mb-0">
+              <img
+                src="/assets/ai-ilustration-marketing-1024x663.webp"
+                alt="AI-powered marketing illustration"
+                className="rounded-lg w-full h-auto"
+              />
+            </div>
+          </div>
+          {/* Data Chat App Integration */}
+          <div className="mt-8 flex flex-col lg:flex-row items-start">
             <div className="lg:w-1/2 pr-4">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
                 Chat with your data

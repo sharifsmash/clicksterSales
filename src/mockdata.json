@@ -33,57 +33,10 @@
         "cpc": 0.93,
         "ecpa": 12.39,
         "avgPayout": 16.21,
-        "by_os": [
-          {
-            "name": "Windows",
-            "clicks": 29342,
-            "offerClicks": 7100,
-            "ctr": 24.20,
-            "cvrs": 2501,
-            "cr": 8.53,
-            "revenue": 31800.20,
-            "spent": 24500.00,
-            "profit": 7300.20,
-            "roi": 29.79,
-            "epc": 1.08,
-            "cpc": 0.83,
-            "ecpa": 9.80,
-            "avgPayout": 13.00
-          },
-          {
-            "name": "iOS",
-            "clicks": 7850,
-            "offerClicks": 1850,
-            "ctr": 23.56,
-            "cvrs": 620,
-            "cr": 7.89,
-            "revenue": 12540.10,
-            "spent": 9100.65,
-            "profit": 3439.45,
-            "roi": 37.79,
-            "epc": 1.60,
-            "cpc": 1.16,
-            "ecpa": 14.68,
-            "avgPayout": 18.00
-          },
-          {
-            "name": "Android",
-            "clicks": 11712,
-            "offerClicks": 3502,
-            "ctr": 29.88,
-            "cvrs": 850,
-            "cr": 7.25,
-            "revenue": 15280.70,
-            "spent": 12590.23,
-            "profit": 2690.47,
-            "roi": 21.37,
-            "epc": 1.30,
-            "cpc": 1.07,
-            "ecpa": 14.81,
-            "avgPayout": 17.97
-          }
-        ],
-        "by_region": [
+
+
+  "by_region": [
+    
   {
     "name": "Florida",
     "clicks": 18000,
