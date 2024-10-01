@@ -26,6 +26,7 @@ interface OSData {
 interface RegionData {
   region: string;
   campaignId: string;
+  offerId: string;
   metrics: MetricsData;
 }
 
@@ -46,11 +47,15 @@ interface MetricsData {
   name: string;
 }
 
+// Update the CampaignData interface to include by_offer
 interface CampaignData {
   id: string;
   name: string;
   owner: string;
   metrics: MetricsData;
+  by_offer?: {
+    [offerId: string]: MetricsData[];
+  };
 }
 
 interface Message {
@@ -87,14 +92,19 @@ interface ResponseData {
 // Add this interface at the top of the file
 interface Region {
   name: string;
-  roi: number;
-  avgPayout: number;
+  clicks: number;
+  offerClicks: number;
+  ctr: number;
+  cvrs: number;
+  cr: number;
+  revenue: number;
   spent: number;
   profit: number;
-  cr: number;
+  roi: number;
+  epc: number;
   cpc: number;
-  revenue: number;
-  ctr: number;
+  ecpa: number;
+  avgPayout: number;
 }
 
 const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
@@ -166,11 +176,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
 
   const getCampaignRegionData = (campaignId: string): RegionData[] => {
     const campaign = mockData.campaigns.find(c => c.id === campaignId);
-    return campaign ? campaign.by_region.map(region => ({
-      region: region.name,
-      campaignId: campaignId,
-      metrics: region
-    })) : [];
+    if (!campaign || !campaign.by_offer) return [];
+
+    return Object.entries(campaign.by_offer).flatMap(([offerId, regions]) =>
+      (regions as MetricsData[]).map(region => ({
+        region: region.name,
+        campaignId: campaignId,
+        offerId: offerId,
+        metrics: region
+      }))
+    );
   };
 
   const validateData = (data: AggregatedData): AggregatedData => {
@@ -229,7 +244,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     if (specificData) {
       response += `\nRegional breakdown:\n`;
       specificData.forEach(item => {
-        response += `\n${(item as RegionData).region}:\n`;
+        response += `\n${(item as RegionData).region} (Offer: ${(item as RegionData).offerId}):\n`;
         response += `  Clicks: ${formatNumber(item.metrics.clicks, true)}\n`;
         response += `  Revenue: $${formatNumber(item.metrics.revenue)}\n`;
         response += `  Profit: $${formatNumber(item.metrics.profit)}\n`;
@@ -242,7 +257,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       campaignName,
       dataType,
       chartData: specificData ? specificData.map(item => ({
-        name: 'os' in item ? item.os : 'region' in item ? item.region : 'Unknown',
+        name: `${(item as RegionData).region} (${(item as RegionData).offerId})`,
         value: item.metrics.revenue || 0,
         avgPayout: item.metrics.avgPayout || 0
       })) : campaigns.map(campaign => ({
@@ -258,7 +273,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       campaignName,
       dataType,
       chartData: specificData ? specificData.map(item => ({
-        name: 'os' in item ? item.os : 'region' in item ? item.region : 'Unknown',
+        name: `${(item as RegionData).region} (${(item as RegionData).offerId})`,
         value: item.metrics.revenue || 0,
         avgPayout: item.metrics.avgPayout || 0
       })) : campaigns.map(campaign => ({
@@ -465,39 +480,111 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   };
 
   const getRegionsWithHighROI = (data: any): Region[] => {
-    return data.campaigns
+    const regionMap = new Map<string, Partial<Region>>();
+
+    data.campaigns
       .filter((campaign: any) => campaign.name === 'Auto Insurance')
-      .flatMap((campaign: any) => campaign.by_region)
-      .filter((region: any) => region.roi >= 25)
-      .map((region: any) => ({ 
-        name: region.name, 
-        roi: region.roi, 
-        profit: region.profit,
-        avgPayout: region.avgPayout,
-        spent: region.spent,
-        cr: region.cr,
-        cpc: region.cpc,
-        revenue: region.revenue,
-        ctr: region.ctr
-      }));
+      .forEach((campaign: any) => 
+        Object.entries(campaign.by_offer || {}).forEach(([offerId, regions]) =>
+          (regions as MetricsData[]).forEach((region: MetricsData) => {
+            const existingRegion = regionMap.get(region.name);
+            if (existingRegion) {
+              // Aggregate metrics
+              existingRegion.clicks = (existingRegion.clicks || 0) + region.clicks;
+              existingRegion.offerClicks = (existingRegion.offerClicks || 0) + region.offerClicks;
+              existingRegion.revenue = (existingRegion.revenue || 0) + region.revenue;
+              existingRegion.spent = (existingRegion.spent || 0) + region.spent;
+              existingRegion.profit = (existingRegion.profit || 0) + region.profit;
+              existingRegion.cvrs = (existingRegion.cvrs || 0) + region.cvrs;
+            } else {
+              regionMap.set(region.name, {
+                name: region.name,
+                clicks: region.clicks,
+                offerClicks: region.offerClicks,
+                revenue: region.revenue,
+                spent: region.spent,
+                profit: region.profit,
+                cvrs: region.cvrs,
+                ctr: region.ctr,
+                cr: region.cr,
+                epc: region.epc,
+                cpc: region.cpc,
+                ecpa: region.ecpa,
+                avgPayout: region.avgPayout,
+                roi: 0 // Will be calculated later
+              });
+            }
+          })
+        )
+      );
+
+    // Calculate aggregated metrics
+    return Array.from(regionMap.values())
+      .map(region => ({
+        ...region,
+        roi: (region.profit! / region.spent!) * 100,
+        cr: (region.cvrs! / region.clicks!) * 100,
+        cpc: region.spent! / region.clicks!,
+        ctr: (region.offerClicks! / region.clicks!) * 100,
+        epc: region.revenue! / region.clicks!,
+        ecpa: region.spent! / region.cvrs!,
+        avgPayout: region.revenue! / region.cvrs!
+      } as Region))
+      .filter(region => region.roi >= 25);
   };
 
   const getRegionsWithNegativeROI = (data: any): Region[] => {
-    return data.campaigns
+    const regionMap = new Map<string, Partial<Region>>();
+
+    data.campaigns
       .filter((campaign: any) => campaign.name === 'Auto Insurance')
-      .flatMap((campaign: any) => campaign.by_region)
-      .filter((region: any) => region.roi < 0 && Math.abs(region.profit) >= 100)
-      .map((region: any) => ({ 
-        name: region.name, 
-        roi: region.roi, 
-        profit: region.profit,
-        avgPayout: region.avgPayout,
-        spent: region.spent,
-        cr: region.cr,
-        cpc: region.cpc,
-        revenue: region.revenue,
-        ctr: region.ctr
-      }));
+      .forEach((campaign: any) => 
+        Object.entries(campaign.by_offer || {}).forEach(([offerId, regions]) =>
+          (regions as MetricsData[]).forEach((region: MetricsData) => {
+            const existingRegion = regionMap.get(region.name);
+            if (existingRegion) {
+              // Aggregate metrics
+              existingRegion.clicks = (existingRegion.clicks || 0) + region.clicks;
+              existingRegion.offerClicks = (existingRegion.offerClicks || 0) + region.offerClicks;
+              existingRegion.revenue = (existingRegion.revenue || 0) + region.revenue;
+              existingRegion.spent = (existingRegion.spent || 0) + region.spent;
+              existingRegion.profit = (existingRegion.profit || 0) + region.profit;
+              existingRegion.cvrs = (existingRegion.cvrs || 0) + region.cvrs;
+            } else {
+              regionMap.set(region.name, {
+                name: region.name,
+                clicks: region.clicks,
+                offerClicks: region.offerClicks,
+                revenue: region.revenue,
+                spent: region.spent,
+                profit: region.profit,
+                cvrs: region.cvrs,
+                ctr: region.ctr,
+                cr: region.cr,
+                epc: region.epc,
+                cpc: region.cpc,
+                ecpa: region.ecpa,
+                avgPayout: region.avgPayout,
+                roi: 0 // Will be calculated later
+              });
+            }
+          })
+        )
+      );
+
+    // Calculate aggregated metrics
+    return Array.from(regionMap.values())
+      .map(region => ({
+        ...region,
+        roi: (region.profit! / region.spent!) * 100,
+        cr: (region.cvrs! / region.clicks!) * 100,
+        cpc: region.spent! / region.clicks!,
+        ctr: (region.offerClicks! / region.clicks!) * 100,
+        epc: region.revenue! / region.clicks!,
+        ecpa: region.spent! / region.cvrs!,
+        avgPayout: region.revenue! / region.cvrs!
+      } as Region))
+      .filter(region => region.roi < 0 && Math.abs(region.profit!) >= 100);
   };
 
   const clearChat = () => {
