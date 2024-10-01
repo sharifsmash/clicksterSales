@@ -483,6 +483,10 @@ const SaasPage: React.FC = () => {
     // await uploadBytes(storageRef, file);
   };
 
+  const formatNumber = (num: number, decimals: number = 2): string => {
+    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  };
+
   if (!isLoggedIn) {
     return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
   }
@@ -776,9 +780,12 @@ const SaasPage: React.FC = () => {
           {/* Data Chat App Integration */}
           <div className="mt-8 flex flex-col lg:flex-row items-start">
             <div className="lg:w-1/2 pr-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Ask Our AI About Your Marketing Campaigns
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+                Chat with your data
               </h3>
+              <h4 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+                Stop wasting time looking at boring tables!
+              </h4>
               <DataChatApp onSearchComplete={handleSearchComplete} />
             </div>
             {showResults && (
@@ -791,7 +798,7 @@ const SaasPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500">Conversion Rate</p>
-                          <p className="text-2xl font-bold">{cardData.conversionRate.toFixed(2)}%</p>
+                          <p className="text-2xl font-bold">{formatNumber(cardData.conversionRate)}%</p>
                         </div>
                         <FaPercent className="text-2xl text-indigo-500" />
                       </div>
@@ -802,7 +809,7 @@ const SaasPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500">Click-Through Rate</p>
-                          <p className="text-2xl font-bold">{cardData.clickThroughRate.toFixed(2)}%</p>
+                          <p className="text-2xl font-bold">{formatNumber(cardData.clickThroughRate)}%</p>
                         </div>
                         <FaMousePointer className="text-2xl text-indigo-500" />
                       </div>
@@ -814,7 +821,7 @@ const SaasPage: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500">Cost Per Click</p>
                           <p className="text-2xl font-bold text-black">
-                            ${Math.abs(cardData.costPerClick).toFixed(2)}
+                            ${formatNumber(Math.abs(cardData.costPerClick))}
                           </p>
                         </div>
                         <FaDollarSign className="text-2xl text-indigo-500" />
@@ -827,7 +834,7 @@ const SaasPage: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500">ROAS</p>
                           <p className="text-2xl font-bold" style={{ color: cardData.roas >= 0 ? 'green' : 'red' }}>
-                            {cardData.roas.toFixed(2)}%
+                            {formatNumber(cardData.roas)}%
                           </p>
                         </div>
                         <FaChartLine className="text-2xl text-indigo-500" />
@@ -840,7 +847,7 @@ const SaasPage: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500">Avg. Payout</p>
                           <p className="text-2xl font-bold text-black">
-                            ${Math.abs(cardData.avgPayout).toFixed(2)}
+                            ${formatNumber(Math.abs(cardData.avgPayout))}
                           </p>
                         </div>
                         <FaDollarSign className="text-2xl text-indigo-500" />
@@ -853,7 +860,7 @@ const SaasPage: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500">Profit</p>
                           <p className="text-2xl font-bold" style={{ color: cardData.profit >= 0 ? 'green' : 'red' }}>
-                            ${Math.abs(cardData.profit).toFixed(2)}
+                            ${formatNumber(Math.abs(cardData.profit))}
                           </p>
                         </div>
                         <FaChartLine className="text-2xl text-indigo-500" />
