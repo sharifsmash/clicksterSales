@@ -14,6 +14,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import mockData from '../mockdata.json';
 import { Trash2 } from 'lucide-react'; // Import the trash icon
+import { RiRobot2Line } from "react-icons/ri";
 
 // Update the import statement
 interface OSData {
@@ -83,6 +84,19 @@ interface ResponseData {
   chartData?: { name: string; value: number; avgPayout: number }[];
 }
 
+// Add this interface at the top of the file
+interface Region {
+  name: string;
+  roi: number;
+  avgPayout: number;
+  spent: number;
+  profit: number;
+  cr: number;
+  cpc: number;
+  revenue: number;
+  ctr: number;
+}
+
 const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -93,6 +107,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [firestoreData, setFirestoreData] = useState<any>(null);
   const [isDataCollapsibleOpen, setIsDataCollapsibleOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [loadingDots, setLoadingDots] = useState('');
 
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -335,13 +350,18 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   };
 
   const renderMessage = (message: Message, index: number) => {
-    console.log("Rendering message:", message); // Add this line
     return (
       <div key={index} className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
         <div className={`flex items-start space-x-2 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`} style={{maxWidth: '66%'}}>
           <Avatar className="w-8 h-8 flex-shrink-0">
-            <AvatarImage src={message.sender === 'user' ? "/assets/user-avatar.png" : "/assets/ai-avatar.png"} alt={message.sender === 'user' ? "User" : "AI"} />
-            <AvatarFallback>{message.sender === 'user' ? "U" : "AI"}</AvatarFallback>
+            {message.sender === 'user' ? (
+              <AvatarImage src="/assets/user-avatar.png" alt="User" />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
+                <RiRobot2Line size={20} />
+              </div>
+            )}
+            <AvatarFallback>{message.sender === 'user' ? "U" : ""}</AvatarFallback>
           </Avatar>
           <div className={`p-3 rounded-lg shadow ${message.sender === 'user' ? 'bg-gradient-to-r from-purple-400 to-blue-500 text-white' : 'bg-gray-100'}`}>
             <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.text }}></p>
@@ -351,9 +371,141 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     );
   };
 
+  const getRegionsWithHighROI = (data: any): Region[] => {
+    return data.campaigns
+      .filter((campaign: any) => campaign.name === 'Auto Insurance')
+      .flatMap((campaign: any) => campaign.by_region)
+      .filter((region: any) => region.roi >= 25)
+      .map((region: any) => ({ 
+        name: region.name, 
+        roi: region.roi, 
+        profit: region.profit,
+        avgPayout: region.avgPayout,
+        spent: region.spent,
+        cr: region.cr,
+        cpc: region.cpc,
+        revenue: region.revenue,
+        ctr: region.ctr
+      }));
+  };
+
+  const getRegionsWithNegativeROI = (data: any): Region[] => {
+    return data.campaigns
+      .filter((campaign: any) => campaign.name === 'Auto Insurance')
+      .flatMap((campaign: any) => campaign.by_region)
+      .filter((region: any) => region.roi < 0 && Math.abs(region.profit) >= 100)
+      .map((region: any) => ({ 
+        name: region.name, 
+        roi: region.roi, 
+        profit: region.profit,
+        avgPayout: region.avgPayout,
+        spent: region.spent,
+        cr: region.cr,
+        cpc: region.cpc,
+        revenue: region.revenue,
+        ctr: region.ctr
+      }));
+  };
+
   const handleConversationStarter = (starter: string) => {
     setInput(starter);
-    handleSend();
+    if (starter === "What Regions for Auto Insurance have earned 25% ROI or better in the last 30 days?") {
+      setIsLoading(true);
+      setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
+
+      // Simulate AI thinking
+      setTimeout(() => {
+        const highROIRegions = getRegionsWithHighROI(mockData);
+        let response = highROIRegions.length > 0
+          ? `The regions for <u><i>Auto Insurance</i></u> that have earned <u><i>25% ROI</i></u> or better in the last <u><i>30 days</i></u> are:\n${highROIRegions.map((region: Region) => `• <b>${region.name}</b> - ROI: ${formatNumber(region.roi)}%, Profit: $${formatNumber(region.profit)}`).join('\n')}\n\n`
+          : "No regions for <u><i>Auto Insurance</i></u> have earned <u><i>25% ROI</i></u> or better in the last <u><i>30 days</i></u>.";
+
+        if (highROIRegions.length > 0) {
+          const totalProfit = highROIRegions.reduce((sum, region) => sum + region.profit, 0);
+          const avgConversionRate = highROIRegions.reduce((sum, region) => sum + region.cr, 0) / highROIRegions.length;
+          const avgCostPerClick = highROIRegions.reduce((sum, region) => sum + region.cpc, 0) / highROIRegions.length;
+          const avgROAS = highROIRegions.reduce((sum, region) => sum + (region.revenue / region.spent * 100), 0) / highROIRegions.length;
+          const avgPayout = highROIRegions.reduce((sum, region) => sum + region.avgPayout, 0) / highROIRegions.length;
+          const avgClickThroughRate = highROIRegions.reduce((sum, region) => sum + region.ctr, 0) / highROIRegions.length;
+
+          response += `Total Profit for these regions: $${formatNumber(totalProfit)}\n\n`;
+          response += `Averages for these regions:\n`;
+          response += `• Avg. Conversion Rate: ${formatNumber(avgConversionRate)}%\n`;
+          response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
+          response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
+          response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
+          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
+        }
+        
+        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+        
+        // Update the chart data for the response
+        const chartData = highROIRegions.map((region: Region) => ({
+          name: region.name,
+          value: region.roi,
+          avgPayout: region.avgPayout
+        }));
+
+        onSearchComplete({
+          response,
+          aggregatedData: calculateAggregatedData(getOverallStats()),
+          campaignName: 'Auto Insurance',
+          dataType: 'regional',
+          chartData
+        }, formatNumber);
+
+        setIsLoading(false);
+      }, 2000); // 2-second delay
+    } else if (starter === "What Regions for Auto Insurance have lost $100 or more and have a negative ROI?") {
+      setIsLoading(true);
+      setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
+
+      // Simulate AI thinking
+      setTimeout(() => {
+        const negativeROIRegions = getRegionsWithNegativeROI(mockData);
+        let response = negativeROIRegions.length > 0
+          ? `The regions for <u><i>Auto Insurance</i></u> that have lost <u><i>$100 or more</i></u> and have a <u><i>negative ROI</i></u> are:\n${negativeROIRegions.map((region: Region) => `• <b>${region.name}</b> - ROI: ${formatNumber(region.roi)}%, Profit: $${formatNumber(region.profit)}`).join('\n')}\n\n`
+          : "No regions for <u><i>Auto Insurance</i></u> have lost <u><i>$100 or more</i></u> and have a <u><i>negative ROI</i></u>.";
+
+        if (negativeROIRegions.length > 0) {
+          const totalProfit = negativeROIRegions.reduce((sum, region) => sum + region.profit, 0);
+          const avgConversionRate = negativeROIRegions.reduce((sum, region) => sum + region.cr, 0) / negativeROIRegions.length;
+          const avgCostPerClick = negativeROIRegions.reduce((sum, region) => sum + region.cpc, 0) / negativeROIRegions.length;
+          const avgROAS = negativeROIRegions.reduce((sum, region) => sum + (region.revenue / region.spent * 100), 0) / negativeROIRegions.length;
+          const avgPayout = negativeROIRegions.reduce((sum, region) => sum + region.avgPayout, 0) / negativeROIRegions.length;
+          const avgClickThroughRate = negativeROIRegions.reduce((sum, region) => sum + region.ctr, 0) / negativeROIRegions.length;
+
+          response += `Total Profit for these regions: $${formatNumber(totalProfit)}\n\n`;
+          response += `Averages for these regions:\n`;
+          response += `• Avg. Conversion Rate: ${formatNumber(avgConversionRate)}%\n`;
+          response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
+          response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
+          response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
+          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
+        }
+        
+        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+        
+        // Update the chart data for the response
+        const chartData = negativeROIRegions.map((region: Region) => ({
+          name: region.name,
+          value: region.roi,
+          avgPayout: region.avgPayout
+        }));
+
+        onSearchComplete({
+          response,
+          aggregatedData: calculateAggregatedData(getOverallStats()),
+          campaignName: 'Auto Insurance',
+          dataType: 'regional',
+          chartData
+        }, formatNumber);
+
+        setIsLoading(false);
+      }, 2000); // 2-second delay
+    } else {
+      handleSend();
+    }
   };
 
   const clearChat = () => {
@@ -379,6 +531,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     updateChatHeight();
   }, [messages]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingDots(prev => (prev.length >= 3 ? '' : prev + '.'));
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   return (
     <div className="w-full max-w-4xl">
       <Card className="bg-white overflow-hidden transition-all duration-300 ease-in-out">
@@ -391,11 +553,26 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
                   <div className="flex justify-start">
                     <div className="flex items-start space-x-2 max-w-[66%]">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src="/assets/ai-avatar.png" alt="AI" />
-                        <AvatarFallback>AI</AvatarFallback>
+                        <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
+                          <RiRobot2Line size={20} />
+                        </div>
+                        <AvatarFallback></AvatarFallback>
                       </Avatar>
                       <div className="p-3 rounded-lg shadow bg-gray-200">
-                        <p className="text-sm">Analyzing...</p>
+                        <p className="text-sm">
+                          Analyzing
+                          <span className="inline-block w-4">
+                            {loadingDots.split('').map((dot, index) => (
+                              <span
+                                key={index}
+                                className="inline-block animate-bounce"
+                                style={{ animationDelay: `${index * 0.1}s` }}
+                              >
+                                {dot}
+                              </span>
+                            ))}
+                          </span>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -420,10 +597,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       </Card>
       <div className="mt-4 flex space-x-4 justify-center">
         <button
-          onClick={() => handleConversationStarter("Regional data per campaign")}
+          onClick={() => handleConversationStarter("What Regions for Auto Insurance have earned 25% ROI or better in the last 30 days?")}
           className="px-4 py-2 border border-purple-500 text-purple-500 rounded-md hover:bg-purple-50 transition-colors duration-300"
         >
-          Regional data per campaign
+          Auto Insurance High ROI Regions
+        </button>
+        <button
+          onClick={() => handleConversationStarter("What Regions for Auto Insurance have lost $100 or more and have a negative ROI?")}
+          className="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors duration-300"
+        >
+          Auto Insurance Negative ROI Regions
         </button>
         <button
           onClick={() => handleConversationStarter("OS by campaign")}
@@ -433,7 +616,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
         </button>
         <button
           onClick={clearChat}
-          className="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors duration-300 flex items-center"
+          className="px-4 py-2 border border-gray-500 text-gray-500 rounded-md hover:bg-gray-50 transition-colors duration-300 flex items-center"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Clear Chat

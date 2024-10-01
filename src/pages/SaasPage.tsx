@@ -3,11 +3,10 @@ import { Marquee } from '../components/magicui/Marquee';
 import { AnimatedList } from '../components/magicui/animated-list';
 import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
-import ShinyButton from "../components/magicui/shiny-button";
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
 import QuestionSection from '../components/QuestionSection'; // Import the new component
-import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign, FaPhone, FaRandom, FaChartBar, FaExchangeAlt } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
 import { Card, CardContent } from "../components/ui/card";
 import mockData from '../mockdata.json';
@@ -140,7 +139,7 @@ const Footer: React.FC = () => (
             <li>Ad tracking</li>
             <li>Teamwork</li>
             <li>Partner marketing</li>
-            <li>RedTrack API</li>
+            <li>Clickster API</li>
             <li>Ad tracking & Management automation</li>
             <li>Cost & Revenue auto-sync</li>
           </ul>
@@ -443,6 +442,15 @@ const SaasPage: React.FC = () => {
     });
   };
 
+  const [summaryData, setSummaryData] = useState<{
+    avgConversionRate: number;
+    avgCostPerClick: number;
+    avgROAS: number;
+    avgPayout: number;
+    avgClickThroughRate: number;
+    totalProfit: number;
+  } | null>(null);
+
   const handleSearchComplete = (responseData: ResponseData) => {
     console.log(responseData.response);
     setCardData(responseData.aggregatedData);
@@ -455,6 +463,22 @@ const SaasPage: React.FC = () => {
           { name: 'AOV', value: responseData.aggregatedData.avgPayout }
         ]
       });
+    }
+
+    // Extract summary data from the response
+    const summaryMatch = responseData.response.match(/Total Profit for these regions: \$([\d,.-]+)\n\nAverages for these regions:\n• Avg\. Conversion Rate: ([\d.]+)%\n• Avg\. Cost Per Click: \$([\d.]+)\n• Avg\. ROAS: ([\d.]+)%\n• Avg\. Payout: \$([\d.]+)\n• Avg\. Click-Through Rate: ([\d.]+)%/);
+    
+    if (summaryMatch) {
+      setSummaryData({
+        totalProfit: parseFloat(summaryMatch[1].replace(/,/g, '')),
+        avgConversionRate: parseFloat(summaryMatch[2]),
+        avgCostPerClick: parseFloat(summaryMatch[3]),
+        avgROAS: parseFloat(summaryMatch[4]),
+        avgPayout: parseFloat(summaryMatch[5]),
+        avgClickThroughRate: parseFloat(summaryMatch[6])
+      });
+    } else {
+      setSummaryData(null);
     }
 
     // Set the summary text
@@ -495,17 +519,15 @@ const SaasPage: React.FC = () => {
     <div className="min-h-screen overflow-hidden relative">
       <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center">
-          {/* Updated styling for the logo text with underline */}
           <h1 className="text-4xl font-extrabold text-gray-900 hover:text-indigo-600 transition duration-300 relative">
             Clickster
             <span className="text-indigo-600">Pro</span>
-            <span className="block h-1 w-full bg-indigo-600 mt-1 rounded-md"></span> {/* Underline effect */}
+            <span className="block h-1 w-full bg-indigo-600 mt-1 rounded-md"></span>
           </h1>
         </div>
-        <ShinyButton className="text-lg px-6 py-2 w-auto">
+        <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
           Free Trial
-        </ShinyButton>
-        
+        </button>
       </header>
 
       <main className="w-full px-4 pt-16 pb-28 relative -mt-12 bg-gradient-to-b from-white via-indigo-50 to-gray-100">
@@ -561,15 +583,6 @@ const SaasPage: React.FC = () => {
       <section className="relative py-16 overflow-hidden bg-gray-100">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-300/10 via-pink-300/10 to-blue-300/10"></div>
         
-        {/* Add AnimatedGridPattern here */}
-        <AnimatedGridPattern
-          numSquares={50}
-          maxOpacity={0.05}
-          duration={5}
-          repeatDelay={0}
-          className="absolute inset-0 [mask-image:radial-gradient(600px_circle_at_center,white,transparent)] inset-x-0 inset-y-[-30%] h-[150%] skew-y-12"
-        />
-        
         <div className="container mx-auto px-4 relative z-10 -mt-[15px]">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-1">
@@ -611,11 +624,6 @@ const SaasPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row-reverse items-center justify-between -mb-1 mt-12">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
               <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-2xl relative overflow-hidden w-[85%] mx-auto shadow-lg">
-                <AnimatedGridPattern
-                  className="absolute inset-0 opacity-10"
-                  numSquares={20}
-                  duration={30}
-                />
                 <div className="bg-white rounded-xl overflow-hidden">
                   <img 
                     src="/assets/commandcenter/creatives.png"
@@ -643,11 +651,6 @@ const SaasPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row items-center justify-between mt-12">
             <div className="lg:w-1/2 mb-2 lg:mb-0">
               <div className="bg-gradient-to-br from-indigo-500/30 via-purple-500/30 to-pink-500/30 p-6 rounded-2xl relative overflow-hidden w-[85%] mx-auto shadow-lg">
-                <AnimatedGridPattern
-                  className="absolute inset-0 opacity-10"
-                  numSquares={20}
-                  duration={30}
-                />
                 <div className="bg-white rounded-xl overflow-hidden">
                   <img 
                     src="/assets/commandcenter/mobileapp.png" 
@@ -752,33 +755,6 @@ const SaasPage: React.FC = () => {
       <section className="bg-gradient-to-b from-white to-indigo-50 py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-start justify-between">
-            <div className="lg:w-1/2 order-2 lg:order-1">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                AI-Powered Marketing Solutions
-              </h2>
-              <p className="text-lg text-gray-700 mb-6">
-                Harness the power of artificial intelligence to revolutionize your marketing campaigns. Our platform uses cutting-edge AI technology to optimize your ad performance, target the right audience, and maximize your ROI.
-              </p>
-              <ul className="list-disc list-inside text-lg text-gray-700 mb-8">
-                <li>Automated ad creation and optimization</li>
-                <li>Intelligent audience targeting</li>
-                <li>Predictive analytics for campaign performance</li>
-                <li>Real-time adjustments for maximum efficiency</li>
-              </ul>
-              <button className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
-                Explore AI Features
-              </button>
-            </div>
-            <div className="lg:w-1/2 mb-8 lg:mb-0 order-1 lg:order-2">
-              <img
-                src="/assets/ai-ilustration-marketing-1024x663.webp"
-                alt="AI-powered marketing illustration"
-                className="rounded-lg w-full h-auto"
-              />
-            </div>
-          </div>
-          {/* Data Chat App Integration */}
-          <div className="mt-8 flex flex-col lg:flex-row items-start">
             <div className="lg:w-1/2 pr-4">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
                 Chat with your data
@@ -793,84 +769,82 @@ const SaasPage: React.FC = () => {
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{summaryText}</h3>
                 <p className="text-lg text-gray-600 mb-6">Data from {mockData.date_range}</p>
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Conversion Rate</p>
-                          <p className="text-2xl font-bold">{formatNumber(cardData.conversionRate)}%</p>
-                        </div>
-                        <FaPercent className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Click-Through Rate</p>
-                          <p className="text-2xl font-bold">{formatNumber(cardData.clickThroughRate)}%</p>
-                        </div>
-                        <FaMousePointer className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Cost Per Click</p>
-                          <p className="text-2xl font-bold text-black">
-                            ${formatNumber(Math.abs(cardData.costPerClick))}
-                          </p>
-                        </div>
-                        <FaDollarSign className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">ROAS</p>
-                          <p className="text-2xl font-bold" style={{ color: cardData.roas >= 0 ? 'green' : 'red' }}>
-                            {formatNumber(cardData.roas)}%
-                          </p>
-                        </div>
-                        <FaChartLine className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Avg. Payout</p>
-                          <p className="text-2xl font-bold text-black">
-                            ${formatNumber(Math.abs(cardData.avgPayout))}
-                          </p>
-                        </div>
-                        <FaDollarSign className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Profit</p>
-                          <p className="text-2xl font-bold" style={{ color: cardData.profit >= 0 ? 'green' : 'red' }}>
-                            ${formatNumber(Math.abs(cardData.profit))}
-                          </p>
-                        </div>
-                        <FaChartLine className="text-2xl text-indigo-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {summaryData && (
+                    <>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. Conversion Rate</p>
+                              <p className="text-2xl font-bold">{formatNumber(summaryData.avgConversionRate)}%</p>
+                            </div>
+                            <FaPercent className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. Click-Through Rate</p>
+                              <p className="text-2xl font-bold">{formatNumber(summaryData.avgClickThroughRate)}%</p>
+                            </div>
+                            <FaMousePointer className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. Cost Per Click</p>
+                              <p className="text-2xl font-bold">${formatNumber(summaryData.avgCostPerClick)}</p>
+                            </div>
+                            <FaDollarSign className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. ROAS</p>
+                              <p className="text-2xl font-bold">{formatNumber(summaryData.avgROAS)}%</p>
+                            </div>
+                            <FaExchangeAlt className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. Payout</p>
+                              <p className="text-2xl font-bold">${formatNumber(summaryData.avgPayout)}</p>
+                            </div>
+                            <FaMoneyBillWave className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Total Profit</p>
+                              <p className="text-2xl font-bold" style={{ color: summaryData.totalProfit >= 0 ? 'green' : 'red' }}>
+                                ${formatNumber(Math.abs(summaryData.totalProfit))}
+                              </p>
+                            </div>
+                            <FaChartLine className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  )}
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance</h4>
-                  <div className="h-[400px]"> {/* Increased height for better visibility */}
+                  <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={chartData.campaignPerformance}>
                         <XAxis dataKey="name" />
@@ -886,6 +860,80 @@ const SaasPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Call Tracking Section */}
+      <section className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Easy call tracking with Ringba and Retreaver
+            </h2>
+            <p className="text-xl text-gray-700 mt-4">
+              Connect and track calls with any funnel using ClicksterPro.
+            </p>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-center justify-between">
+            <div className="lg:w-1/2 mb-8 lg:mb-0">
+              <div className="bg-gradient-to-br from-indigo-100 to-blue-100 p-6 rounded-xl shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="bg-red-200 text-red-700 px-4 py-2 rounded-full text-sm font-semibold">
+                    100 New HVAC phone leads
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Channel: Google Ads &nbsp;&nbsp; Campaign: Boston
+                  </div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Smart call routing</span>
+                    <div className="w-12 h-6 bg-green-400 rounded-full flex items-center">
+                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform translate-x-6"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between mb-6">
+                  {['Company 1', 'Company 2', 'Company 3'].map((company, index) => (
+                    <div key={index} className="bg-white px-4 py-2 rounded-lg shadow">
+                      {company}
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-green-100 p-4 rounded-lg flex justify-between items-center">
+                  <span className="text-green-700 font-semibold">Commission earned from</span>
+                  <div className="bg-green-200 text-green-800 px-3 py-1 rounded-full">
+                    60 sales
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:w-1/2 lg:pl-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Unify your media buying efforts</h3>
+              <p className="text-lg text-gray-700 mb-6">
+              Clickster collaborated closely with its users, as well as teams from Retreaver and Ringba, to seamlessly integrate call tracking with ad tracking, ensuring everything stays in perfect sync.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  { icon: <FaPhone />, title: "Integrated Call Tracking", description: "Seamlessly connect calls with your marketing funnel" },
+                  { icon: <FaRandom />, title: "Smart Call Routing", description: "Automatically route calls to the best-performing partners" },
+                  { icon: <FaChartBar />, title: "Advanced Analytics", description: "Get detailed insights on call performance and ROI" },
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-2xl mr-4 text-indigo-500">{item.icon}</span>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                      <p className="text-gray-700">{item.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button className="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-md hover:bg-indigo-700 transition duration-300">
+                Learn More
+              </button>
+            </div>
           </div>
         </div>
       </section>
