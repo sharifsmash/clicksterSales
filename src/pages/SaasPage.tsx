@@ -38,6 +38,12 @@ interface AggregatedData {
   costPerClick: number;
   roas: number;
   avgPayout: number;
+  // Add the new properties
+  avgConversionRate?: number;
+  avgClickThroughRate?: number;
+  avgCostPerClick?: number;
+  avgROAS?: number;
+  totalProfit?: number;
 }
 
 interface ResponseData {
@@ -465,20 +471,14 @@ const SaasPage: React.FC = () => {
     }
 
     // Extract summary data from the response
-    const summaryMatch = responseData.response.match(/Total Profit for these regions: \$([\d,.-]+)\n\nAverages for these regions:\n• Avg\. Conversion Rate: ([\d.]+)%\n• Avg\. Cost Per Click: \$([\d.]+)\n• Avg\. ROAS: ([\d.]+)%\n• Avg\. Payout: \$([\d.]+)\n• Avg\. Click-Through Rate: ([\d.]+)%/);
-    
-    if (summaryMatch) {
-      setSummaryData({
-        totalProfit: parseFloat(summaryMatch[1].replace(/,/g, '')),
-        avgConversionRate: parseFloat(summaryMatch[2]),
-        avgCostPerClick: parseFloat(summaryMatch[3]),
-        avgROAS: parseFloat(summaryMatch[4]),
-        avgPayout: parseFloat(summaryMatch[5]),
-        avgClickThroughRate: parseFloat(summaryMatch[6])
-      });
-    } else {
-      setSummaryData(null);
-    }
+    setSummaryData({
+      avgConversionRate: responseData.aggregatedData.avgConversionRate || responseData.aggregatedData.conversionRate,
+      avgCostPerClick: responseData.aggregatedData.avgCostPerClick || responseData.aggregatedData.costPerClick,
+      avgROAS: responseData.aggregatedData.avgROAS || responseData.aggregatedData.roas,
+      avgPayout: responseData.aggregatedData.avgPayout,
+      avgClickThroughRate: responseData.aggregatedData.avgClickThroughRate || responseData.aggregatedData.clickThroughRate,
+      totalProfit: responseData.aggregatedData.totalProfit || responseData.aggregatedData.profit,
+    });
 
     // Set the summary text
     if (responseData.campaignName) {

@@ -81,6 +81,12 @@ interface AggregatedData {
   costPerClick: number;
   roas: number;
   avgPayout: number;
+  // Add the new properties
+  avgConversionRate?: number;
+  avgClickThroughRate?: number;
+  avgCostPerClick?: number;
+  avgROAS?: number;
+  totalProfit?: number;
 }
 
 interface ResponseData {
@@ -397,7 +403,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
 
-      // Simulate AI thinking
       setTimeout(() => {
         const highROIRegions = getRegionsWithHighROI(mockData);
         let response = highROIRegions.length > 0
@@ -419,32 +424,41 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
           response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
           response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
-        }
-        
-        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
-        
-        // Update the chart data for the response
-        const chartData = highROIRegions.map((region: Region) => ({
-          name: region.name,
-          value: region.roi,
-          avgPayout: region.avgPayout
-        }));
 
-        onSearchComplete({
-          response,
-          aggregatedData: calculateAggregatedData(getOverallStats()),
-          campaignName: 'Auto Insurance',
-          dataType: 'regional',
-          chartData
-        }, formatNumber);
+          setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+          
+          const chartData = highROIRegions.map((region: Region) => ({
+            name: region.name,
+            value: region.roi,
+            avgPayout: region.avgPayout
+          }));
+
+          onSearchComplete({
+            response,
+            aggregatedData: {
+              conversionRate: avgConversionRate,
+              clickThroughRate: avgClickThroughRate,
+              costPerClick: avgCostPerClick,
+              roas: avgROAS,
+              avgPayout: avgPayout,
+              profit: totalProfit,
+              clicks: highROIRegions.reduce((sum, region) => sum + region.clicks, 0),
+              cvrs: highROIRegions.reduce((sum, region) => sum + region.cvrs, 0),
+              revenue: highROIRegions.reduce((sum, region) => sum + region.revenue, 0),
+              spent: highROIRegions.reduce((sum, region) => sum + region.spent, 0),
+            },
+            campaignName: 'Auto Insurance',
+            dataType: 'regional',
+            chartData
+          }, formatNumber);
+        }
 
         setIsLoading(false);
-      }, 2000); // 2-second delay
+      }, 2000);
     } else if (starter === "What Regions for Auto Insurance have lost $100 or more and have a negative ROI?") {
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
 
-      // Simulate AI thinking
       setTimeout(() => {
         const negativeROIRegions = getRegionsWithNegativeROI(mockData);
         let response = negativeROIRegions.length > 0
@@ -466,27 +480,37 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
           response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
           response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
-        }
-        
-        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
-        
-        // Update the chart data for the response
-        const chartData = negativeROIRegions.map((region: Region) => ({
-          name: region.name,
-          value: region.roi,
-          avgPayout: region.avgPayout
-        }));
 
-        onSearchComplete({
-          response,
-          aggregatedData: calculateAggregatedData(getOverallStats()),
-          campaignName: 'Auto Insurance',
-          dataType: 'regional',
-          chartData
-        }, formatNumber);
+          setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+          
+          const chartData = negativeROIRegions.map((region: Region) => ({
+            name: region.name,
+            value: region.roi,
+            avgPayout: region.avgPayout
+          }));
+
+          onSearchComplete({
+            response,
+            aggregatedData: {
+              conversionRate: avgConversionRate,
+              clickThroughRate: avgClickThroughRate,
+              costPerClick: avgCostPerClick,
+              roas: avgROAS,
+              avgPayout: avgPayout,
+              profit: totalProfit,
+              clicks: negativeROIRegions.reduce((sum, region) => sum + region.clicks, 0),
+              cvrs: negativeROIRegions.reduce((sum, region) => sum + region.cvrs, 0),
+              revenue: negativeROIRegions.reduce((sum, region) => sum + region.revenue, 0),
+              spent: negativeROIRegions.reduce((sum, region) => sum + region.spent, 0),
+            },
+            campaignName: 'Auto Insurance',
+            dataType: 'regional',
+            chartData
+          }, formatNumber);
+        }
 
         setIsLoading(false);
-      }, 2000); // 2-second delay
+      }, 2000);
     } else if (starter === "Best offer per Region based on EPC") {
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
@@ -497,6 +521,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
         let response = "Here are the best offers per region based on EPC:\n\n";
 
         const offerSummary: { [key: string]: { region: string; epc: number; metrics: MetricsData }[] } = {};
+        const allOffers: MetricsData[] = [];
 
         Object.entries(bestOffers).forEach(([region, offers]) => {
           response += `<b>${region}</b>:\n`;
@@ -508,6 +533,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
               }
               offerSummary[offer.offer].push({ region, epc: offer.epc, metrics: offer.metrics });
             }
+            allOffers.push(offer.metrics);
           });
           response += '\n';
         });
@@ -522,6 +548,24 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           });
           response += '\n';
         });
+
+        // Calculate aggregated data for all offers
+        const totalOffers = allOffers.length;
+        const avgConversionRate = allOffers.reduce((sum, offer) => sum + offer.cr, 0) / totalOffers;
+        const avgClickThroughRate = allOffers.reduce((sum, offer) => sum + offer.ctr, 0) / totalOffers;
+        const avgCostPerClick = allOffers.reduce((sum, offer) => sum + offer.cpc, 0) / totalOffers;
+        const avgROAS = allOffers.reduce((sum, offer) => sum + (offer.revenue / offer.spent * 100), 0) / totalOffers;
+        const avgPayout = allOffers.reduce((sum, offer) => sum + offer.avgPayout, 0) / totalOffers;
+        const totalProfit = allOffers.reduce((sum, offer) => sum + offer.profit, 0);
+
+        // Add aggregated data to the response
+        response += "\n<b>Aggregated data for all offers:</b>\n\n";
+        response += `• Avg. Conversion Rate: ${formatNumber(avgConversionRate)}%\n`;
+        response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%\n`;
+        response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
+        response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
+        response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
+        response += `• Total Profit: $${formatNumber(totalProfit)}\n`;
 
         setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
 
@@ -551,11 +595,28 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
 
         onSearchComplete({
           response,
-          aggregatedData: calculateAggregatedData(getOverallStats()),
+          aggregatedData: {
+            avgConversionRate,
+            avgClickThroughRate,
+            avgCostPerClick,
+            avgROAS,
+            avgPayout,
+            totalProfit,
+            // Add other required fields
+            clicks: allOffers.reduce((sum, offer) => sum + offer.clicks, 0),
+            cvrs: allOffers.reduce((sum, offer) => sum + offer.cvrs, 0),
+            revenue: allOffers.reduce((sum, offer) => sum + offer.revenue, 0),
+            spent: allOffers.reduce((sum, offer) => sum + offer.spent, 0),
+            profit: totalProfit,
+            conversionRate: avgConversionRate,
+            clickThroughRate: avgClickThroughRate,
+            costPerClick: avgCostPerClick,
+            roas: avgROAS,
+          },
           campaignName: 'Auto Insurance',
           dataType: 'regional',
           chartData,
-          cardData, // Add this line to include the card data
+          cardData,
         }, formatNumber);
 
         setIsLoading(false);
