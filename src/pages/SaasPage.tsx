@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import mockData from '../mockdata.json';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 import { db, storage } from '../firebase';
+import { TooltipProps } from 'recharts';
 
 interface AdMockupProps {
   title: string;
@@ -22,7 +23,7 @@ interface AdMockupProps {
 
 // Add this interface near the top of your file, after other imports
 interface ChartData {
-  campaignPerformance: { name: string; value: number }[];
+  campaignPerformance: { name: string; Revenue: number; Cost: number; Profit: number }[];
   costValueDistribution: { name: string; value: number }[];
 }
 
@@ -51,7 +52,7 @@ interface ResponseData {
   aggregatedData: AggregatedData;
   campaignName?: string;
   dataType?: 'all' | 'regional' | 'os';
-  chartData?: { name: string; value: number }[];
+  chartData?: { name: string; value: number; avgPayout?: number }[];
 }
 
 const features = [
@@ -436,9 +437,24 @@ const SaasPage: React.FC = () => {
     const campaign = mockData.campaigns[0];
     setChartData({
       campaignPerformance: [
-        { name: 'Impressions', value: campaign.clicks * (100 / campaign.ctr) },
-        { name: 'Clicks', value: campaign.clicks },
-        { name: 'Conversions', value: campaign.cvrs }
+        { 
+          name: 'Impressions', 
+          Revenue: campaign.clicks * (100 / campaign.ctr),
+          Cost: (campaign.clicks * (100 / campaign.ctr)) * 0.6, // Assuming cost is 60% of revenue
+          Profit: (campaign.clicks * (100 / campaign.ctr)) * 0.4 // Assuming profit is 40% of revenue
+        },
+        { 
+          name: 'Clicks', 
+          Revenue: campaign.clicks,
+          Cost: campaign.clicks * 0.6,
+          Profit: campaign.clicks * 0.4
+        },
+        { 
+          name: 'Conversions', 
+          Revenue: campaign.cvrs,
+          Cost: campaign.cvrs * 0.6,
+          Profit: campaign.cvrs * 0.4
+        }
       ],
       costValueDistribution: [
         { name: 'CPA', value: campaign.ecpa },
@@ -461,8 +477,16 @@ const SaasPage: React.FC = () => {
     setCardData(responseData.aggregatedData);
     
     if (responseData.chartData) {
+      const formattedChartData = responseData.chartData.map(item => ({
+        name: item.name,
+        Revenue: item.value,
+        Cost: item.value * 0.6,
+        Profit: item.value * 0.4,
+        AvgPayout: item.avgPayout || responseData.aggregatedData.avgPayout
+      }));
+
       setChartData({
-        campaignPerformance: responseData.chartData,
+        campaignPerformance: formattedChartData,
         costValueDistribution: [
           { name: 'CPA', value: responseData.aggregatedData.costPerClick * responseData.aggregatedData.conversionRate / 100 },
           { name: 'AOV', value: responseData.aggregatedData.avgPayout }
@@ -506,8 +530,8 @@ const SaasPage: React.FC = () => {
     // await uploadBytes(storageRef, file);
   };
 
-  const formatNumber = (num: number, decimals: number = 2): string => {
-    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const formatNumber = (num: number, isPercentage: boolean = false): string => {
+    return isPercentage ? `${(num * 100).toFixed(2)}%` : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   if (!isLoggedIn) {
@@ -869,17 +893,19 @@ const SaasPage: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance</h4>
+                  <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance by Offer</h4>
                   <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={chartData.campaignPerformance}>
                         <XAxis dataKey="name" />
-                        <YAxis yAxisId="left" />
-                        <YAxis yAxisId="right" orientation="right" />
-                        <Tooltip />
+                        <YAxis yAxisId="left" label={{ value: 'Amount ($)', angle: -90, position: 'insideLeft' }} />
+                        <YAxis yAxisId="right" orientation="right" label={{ value: 'Avg Payout ($)', angle: 90, position: 'insideRight' }} />
+                        <Tooltip content={<CustomTooltip formatNumber={formatNumber} />} />
                         <Legend />
-                        <Bar yAxisId="left" dataKey="value" fill="#8884d8" />
-                        <Line yAxisId="right" type="monotone" dataKey="avgPayout" stroke="#ff7300" />
+                        <Bar dataKey="Revenue" stackId="a" fill="#8884d8" yAxisId="left" />
+                        <Bar dataKey="Cost" stackId="a" fill="#82ca9d" yAxisId="left" />
+                        <Bar dataKey="Profit" stackId="a" fill="#ffc658" yAxisId="left" />
+                        <Line type="monotone" dataKey="AvgPayout" stroke="#ff7300" yAxisId="right" strokeWidth={2} />
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
@@ -1357,5 +1383,27 @@ const AdMockup: React.FC<AdMockupProps> = ({
     </button>
   </div>
 );
+
+// Add this type definition
+type CustomTooltipProps = TooltipProps<number, string> & {
+  formatNumber: (num: number, isPercentage?: boolean) => string;
+};
+
+// Add this component definition
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, formatNumber }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-tooltip bg-white p-3 border border-gray-300 rounded shadow">
+        <p className="label font-bold">{`${label}`}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color }}>
+            {`${entry.name}: ${entry.name === 'AvgPayout' ? formatNumber(entry.value as number) : formatNumber(entry.value as number, entry.name === 'Profit')}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default SaasPage;
