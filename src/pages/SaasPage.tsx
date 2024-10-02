@@ -7,7 +7,7 @@ import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
 import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign, FaPhone, FaRandom, FaChartBar, FaExchangeAlt } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
-import { Card, CardContent } from "../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import mockData from '../mockdata.json';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 import { db, storage } from '../firebase';

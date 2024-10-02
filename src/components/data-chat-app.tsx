@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { FaPercent, FaMousePointer, FaDollarSign, FaChartLine } from 'react-icons/fa';
+import { FaPercent, FaMousePointer, FaDollarSign, FaChartLine, FaTrophy } from 'react-icons/fa';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { db, auth } from '../firebase';
@@ -15,6 +15,8 @@ import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import mockData from '../mockdata.json';
 import { Trash2 } from 'lucide-react'; // Import the trash icon
 import { RiRobot2Line } from "react-icons/ri";
+import { Maximize2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 
 // Update the import statement
 interface OSData {
@@ -87,6 +89,13 @@ interface ResponseData {
   campaignName?: string;
   dataType?: 'all' | 'regional' | 'os';
   chartData?: { name: string; value: number; avgPayout: number }[];
+  cardData?: {
+    title: string;
+    metrics: {
+      label: string;
+      value: string | number;
+    }[];
+  }[];
 }
 
 // Add this interface at the top of the file
@@ -107,6 +116,31 @@ interface Region {
   avgPayout: number;
 }
 
+// Update the return type of getBestOfferPerRegionByEPC
+const getBestOfferPerRegionByEPC = (data: any): { [key: string]: { offer: string; epc: number; metrics: MetricsData }[] } => {
+  const regionOffers: { [key: string]: { offer: string; epc: number; metrics: MetricsData }[] } = {};
+
+  data.campaigns
+    .filter((campaign: any) => campaign.name === 'Auto Insurance')
+    .forEach((campaign: any) => 
+      Object.entries(campaign.by_offer || {}).forEach(([offerId, regions]) =>
+        (regions as MetricsData[]).forEach((region: MetricsData) => {
+          if (!regionOffers[region.name]) {
+            regionOffers[region.name] = [];
+          }
+          regionOffers[region.name].push({ offer: offerId, epc: region.epc, metrics: region });
+        })
+      )
+    );
+
+  // Sort offers for each region by EPC in descending order
+  Object.keys(regionOffers).forEach(region => {
+    regionOffers[region].sort((a, b) => b.epc - a.epc);
+  });
+
+  return regionOffers;
+};
+
 const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -118,6 +152,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const [isDataCollapsibleOpen, setIsDataCollapsibleOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [loadingDots, setLoadingDots] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -452,6 +487,79 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
 
         setIsLoading(false);
       }, 2000); // 2-second delay
+    } else if (starter === "Best offer per Region based on EPC") {
+      setIsLoading(true);
+      setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
+
+      // Simulate AI thinking
+      setTimeout(() => {
+        const bestOffers = getBestOfferPerRegionByEPC(mockData);
+        let response = "Here are the best offers per region based on EPC:\n\n";
+
+        const offerSummary: { [key: string]: { region: string; epc: number; metrics: MetricsData }[] } = {};
+
+        Object.entries(bestOffers).forEach(([region, offers]) => {
+          response += `<b>${region}</b>:\n`;
+          offers.forEach((offer, index) => {
+            response += `• ${index === 0 ? '🏆 ' : ''}${offer.offer} - $${formatNumber(offer.epc)} EPC\n`;
+            if (index === 0) { // Only consider the best offer for each region
+              if (!offerSummary[offer.offer]) {
+                offerSummary[offer.offer] = [];
+              }
+              offerSummary[offer.offer].push({ region, epc: offer.epc, metrics: offer.metrics });
+            }
+          });
+          response += '\n';
+        });
+
+        // Add summary at the end of the response
+        response += "\n<b>Summary of best regions for each offer:</b>\n\n";
+        Object.entries(offerSummary).forEach(([offer, regions]) => {
+          response += `<b>${offer}</b>:\n`;
+          regions.sort((a, b) => b.epc - a.epc); // Sort regions by EPC in descending order
+          regions.forEach((region, index) => {
+            response += `${index === 0 ? '🏆 ' : ''}<b>${region.region}</b> - $${formatNumber(region.epc)} EPC\n`;
+          });
+          response += '\n';
+        });
+
+        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+
+        // Generate card data
+        const cardData = Object.entries(bestOffers).map(([region, offers]) => {
+          const bestOffer = offers[0];
+          return {
+            title: `${region} - Best Offer: ${bestOffer.offer}`,
+            metrics: [
+              { label: 'EPC', value: formatNumber(bestOffer.epc) },
+              { label: 'Clicks', value: formatNumber(bestOffer.metrics.clicks) },
+              { label: 'Conversions', value: formatNumber(bestOffer.metrics.cvrs) },
+              { label: 'Revenue', value: formatNumber(bestOffer.metrics.revenue) },
+              { label: 'Spent', value: formatNumber(bestOffer.metrics.spent) },
+              { label: 'Profit', value: formatNumber(bestOffer.metrics.profit) },
+              { label: 'ROI', value: `${formatNumber(bestOffer.metrics.roi)}%` },
+            ],
+          };
+        });
+
+        // Update the chart data for the response
+        const chartData = Object.entries(bestOffers).map(([region, offers]) => ({
+          name: region,
+          value: offers[0].epc,
+          avgPayout: offers[0].metrics.avgPayout,
+        }));
+
+        onSearchComplete({
+          response,
+          aggregatedData: calculateAggregatedData(getOverallStats()),
+          campaignName: 'Auto Insurance',
+          dataType: 'regional',
+          chartData,
+          cardData, // Add this line to include the card data
+        }, formatNumber);
+
+        setIsLoading(false);
+      }, 2000); // 2-second delay
     } else {
       handleSend();
     }
@@ -595,6 +703,10 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     }
   };
 
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
   useEffect(() => {
     const mockFirestoreData = {
       overallStats: getOverallStats(),
@@ -623,41 +735,129 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     <div className="w-full max-w-4xl">
       <Card className="bg-white overflow-hidden transition-all duration-300 ease-in-out">
         <CardContent className="p-4 flex flex-col" style={{ minHeight: '60px' }}>
-          {messages.length > 0 && (
-            <ScrollArea className="flex-grow mb-4 pr-4 overflow-y-auto" style={{ height: `calc(${chatHeight} - 60px)` }} ref={scrollAreaRef}>
-              <div className="space-y-4">
-                {messages.map((message, index) => renderMessage(message, index))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start space-x-2 max-w-[66%]">
-                      <Avatar className="w-8 h-8">
-                        <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
-                          <RiRobot2Line size={20} />
+          <div className="flex justify-end mb-2">
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <DialogTrigger asChild>
+                <button
+                  onClick={toggleModal}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <Maximize2 className="w-5 h-5 text-gray-500" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="w-[90vw] h-[90vh] max-w-none bg-white p-6 flex flex-col">
+                <div className="flex-grow overflow-hidden flex flex-col">
+                  <ScrollArea className="flex-grow pr-4">
+                    <div className="space-y-4">
+                      {messages.map((message, index) => renderMessage(message, index))}
+                      {isLoading && (
+                        <div className="flex justify-start">
+                          <div className="flex items-start space-x-2 max-w-[66%]">
+                            <Avatar className="w-8 h-8">
+                              <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
+                                <RiRobot2Line size={20} />
+                              </div>
+                              <AvatarFallback></AvatarFallback>
+                            </Avatar>
+                            <div className="p-3 rounded-lg shadow bg-gray-200">
+                              <p className="text-sm">
+                                Analyzing
+                                <span className="inline-block w-4">
+                                  {loadingDots.split('').map((dot, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-block animate-bounce"
+                                      style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                      {dot}
+                                    </span>
+                                  ))}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <AvatarFallback></AvatarFallback>
-                      </Avatar>
-                      <div className="p-3 rounded-lg shadow bg-gray-200">
-                        <p className="text-sm">
-                          Analyzing
-                          <span className="inline-block w-4">
-                            {loadingDots.split('').map((dot, index) => (
-                              <span
-                                key={index}
-                                className="inline-block animate-bounce"
-                                style={{ animationDelay: `${index * 0.1}s` }}
-                              >
-                                {dot}
-                              </span>
-                            ))}
-                          </span>
-                        </p>
-                      </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  <div className="mt-4 flex flex-col space-y-4">
+                    <div className="flex space-x-2">
+                      <Input
+                        className="flex-grow"
+                        placeholder="Ask about campaign data or marketing KPIs..."
+                        value={input}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                      />
+                      <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
+                        Send
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <button
+                        onClick={() => handleConversationStarter("What Regions for Auto Insurance have earned 25% ROI or better in the last 30 days?")}
+                        className="px-4 py-2 border border-purple-500 text-purple-500 rounded-md hover:bg-purple-50 transition-colors duration-300"
+                      >
+                        Auto Insurance High ROI Regions
+                      </button>
+                      <button
+                        onClick={() => handleConversationStarter("What Regions for Auto Insurance have lost $100 or more and have a negative ROI?")}
+                        className="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors duration-300"
+                      >
+                        Auto Insurance Negative ROI Regions
+                      </button>
+                      <button
+                        onClick={() => handleConversationStarter("Best offer per Region based on EPC")}
+                        className="px-4 py-2 border border-green-500 text-green-500 rounded-md hover:bg-green-50 transition-colors duration-300"
+                      >
+                        Best Offer per Region (EPC)
+                      </button>
+                      <button
+                        onClick={clearChat}
+                        className="px-4 py-2 border border-gray-500 text-gray-500 rounded-md hover:bg-gray-50 transition-colors duration-300 flex items-center"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear Chat
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            </ScrollArea>
-          )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <ScrollArea className="flex-grow mb-4 pr-4 overflow-y-auto" style={{ height: `calc(${chatHeight} - 60px)` }} ref={scrollAreaRef}>
+            <div className="space-y-4">
+              {messages.map((message, index) => renderMessage(message, index))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex items-start space-x-2 max-w-[66%]">
+                    <Avatar className="w-8 h-8">
+                      <div className="flex items-center justify-center w-full h-full bg-indigo-500 text-white">
+                        <RiRobot2Line size={20} />
+                      </div>
+                      <AvatarFallback></AvatarFallback>
+                    </Avatar>
+                    <div className="p-3 rounded-lg shadow bg-gray-200">
+                      <p className="text-sm">
+                        Analyzing
+                        <span className="inline-block w-4">
+                          {loadingDots.split('').map((dot, index) => (
+                            <span
+                              key={index}
+                              className="inline-block animate-bounce"
+                              style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                              {dot}
+                            </span>
+                          ))}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
           <div className="flex space-x-2 mt-auto">
             <Input
               ref={inputRef}
@@ -673,7 +873,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           </div>
         </CardContent>
       </Card>
-      <div className="mt-4 flex space-x-4 justify-center">
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
         <button
           onClick={() => handleConversationStarter("What Regions for Auto Insurance have earned 25% ROI or better in the last 30 days?")}
           className="px-4 py-2 border border-purple-500 text-purple-500 rounded-md hover:bg-purple-50 transition-colors duration-300"
@@ -685,6 +885,12 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           className="px-4 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50 transition-colors duration-300"
         >
           Auto Insurance Negative ROI Regions
+        </button>
+        <button
+          onClick={() => handleConversationStarter("Best offer per Region based on EPC")}
+          className="px-4 py-2 border border-green-500 text-green-500 rounded-md hover:bg-green-50 transition-colors duration-300"
+        >
+          Best Offer per Region (EPC)
         </button>
         <button
           onClick={clearChat}
