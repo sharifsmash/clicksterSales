@@ -162,6 +162,7 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [loadingDots, setLoadingDots] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
 
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -1138,6 +1139,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
                 </div>
               )}
             </div>
+            {messages.length > 0 && messages[messages.length - 1].sender === 'bot' && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  onClick={() => setIsSignupModalOpen(true)}
+                  className="bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200 px-4 py-2 rounded-md shadow-md"
+                >
+                  Get More Insights
+                </Button>
+              </div>
+            )}
           </ScrollArea>
           <div className="flex space-x-2 mt-auto">
             <Input
@@ -1214,6 +1225,18 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           </Card>
         </Collapsible.Content>
       </Collapsible.Root>
+      
+      {/* Update the Dialog component for the signup modal */}
+      <Dialog open={isSignupModalOpen} onOpenChange={setIsSignupModalOpen}>
+        <DialogContent className="bg-white p-6 rounded-lg shadow-xl">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Sign Up</h2>
+          <p className="mb-4 text-gray-600">Sign up to get more insights and unlock advanced features!</p>
+          {/* Add your signup form or content here */}
+          <Button onClick={() => setIsSignupModalOpen(false)} className="bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200">
+            Close
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
