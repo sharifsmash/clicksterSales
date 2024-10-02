@@ -12,6 +12,8 @@ import mockData from '../mockdata.json';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 import { db, storage } from '../firebase';
 import { TooltipProps } from 'recharts';
+import { Dialog, DialogContent } from "../components/ui/dialog";
+import { BarChart2 } from 'lucide-react';
 
 interface AdMockupProps {
   title: string;
@@ -358,6 +360,7 @@ const SaasPage: React.FC = () => {
   const [summaryText, setSummaryText] = useState('All campaigns');
   const [showResults, setShowResults] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showChartModal, setShowChartModal] = useState(false);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -472,7 +475,7 @@ const SaasPage: React.FC = () => {
     totalProfit: number;
   } | null>(null);
 
-  const handleSearchComplete = (responseData: ResponseData) => {
+  const handleSearchComplete = (responseData: ResponseData, formatNumber: (num: number, isInteger?: boolean) => string) => {
     console.log(responseData.response);
     setCardData(responseData.aggregatedData);
     
@@ -812,11 +815,23 @@ const SaasPage: React.FC = () => {
               <h4 className="text-xl font-semibold text-gray-700 mb-4 text-center">
                 Stop wasting time looking at boring tables!
               </h4>
-              <DataChatApp onSearchComplete={handleSearchComplete} />
+              <DataChatApp 
+                onSearchComplete={handleSearchComplete} 
+                showResults={showResults}
+                setShowChartModal={setShowChartModal}
+              />
             </div>
             {showResults && (
               <div className="lg:w-1/2 pl-4 flex flex-col justify-start">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{summaryText}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900">{summaryText}</h3>
+                  <button
+                    onClick={() => setShowChartModal(true)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <BarChart2 className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
                 <p className="text-lg text-gray-600 mb-6">Data from {mockData.date_range}</p>
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   {summaryData && (
@@ -915,6 +930,107 @@ const SaasPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Chart Modal */}
+      <Dialog open={showChartModal} onOpenChange={setShowChartModal}>
+        <DialogContent className="w-[90vw] h-[90vh] max-w-none bg-white p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-4">{summaryText}</h2>
+          <div className="flex-grow overflow-auto">
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              {summaryData && (
+                <>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. Conversion Rate</p>
+                          <p className="text-2xl font-bold">{formatNumber(summaryData.avgConversionRate)}%</p>
+                        </div>
+                        <FaPercent className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. Click-Through Rate</p>
+                          <p className="text-2xl font-bold">{formatNumber(summaryData.avgClickThroughRate)}%</p>
+                        </div>
+                        <FaMousePointer className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. Cost Per Click</p>
+                          <p className="text-2xl font-bold">${formatNumber(summaryData.avgCostPerClick)}</p>
+                        </div>
+                        <FaDollarSign className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. ROAS</p>
+                          <p className="text-2xl font-bold">{formatNumber(summaryData.avgROAS)}%</p>
+                        </div>
+                        <FaExchangeAlt className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. Payout</p>
+                          <p className="text-2xl font-bold">${formatNumber(summaryData.avgPayout)}</p>
+                        </div>
+                        <FaMoneyBillWave className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Total Profit</p>
+                          <p className="text-2xl font-bold" style={{ color: summaryData.totalProfit >= 0 ? 'green' : 'red' }}>
+                            ${formatNumber(Math.abs(summaryData.totalProfit))}
+                          </p>
+                        </div>
+                        <FaChartLine className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Campaign Performance by Offer</h4>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={chartData.campaignPerformance}>
+                    <XAxis dataKey="name" />
+                    <YAxis yAxisId="left" label={{ value: 'Amount ($)', angle: -90, position: 'insideLeft' }} />
+                    <YAxis yAxisId="right" orientation="right" label={{ value: 'Avg Payout ($)', angle: 90, position: 'insideRight' }} />
+                    <Tooltip content={<CustomTooltip formatNumber={formatNumber} />} />
+                    <Legend />
+                    <Bar dataKey="Revenue" stackId="a" fill="#8884d8" yAxisId="left" />
+                    <Bar dataKey="Cost" stackId="a" fill="#82ca9d" yAxisId="left" />
+                    <Bar dataKey="Profit" stackId="a" fill="#ffc658" yAxisId="left" />
+                    <Line type="monotone" dataKey="AvgPayout" stroke="#ff7300" yAxisId="right" strokeWidth={2} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Call Tracking Section */}
       <section className="bg-white py-16">

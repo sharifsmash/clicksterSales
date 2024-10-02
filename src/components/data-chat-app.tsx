@@ -13,9 +13,8 @@ import { signInAnonymously } from 'firebase/auth';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import mockData from '../mockdata.json';
-import { Trash2 } from 'lucide-react'; // Import the trash icon
+import { Trash2, Maximize2, BarChart2 } from 'lucide-react';
 import { RiRobot2Line } from "react-icons/ri";
-import { Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import offerRegionData from '../offerRegion.json';
 
@@ -68,6 +67,8 @@ interface Message {
 
 interface DataChatAppProps {
   onSearchComplete: (responseData: ResponseData, formatNumber: (num: number, isInteger?: boolean) => string) => void;
+  showResults: boolean;
+  setShowChartModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // Add these new interfaces
@@ -150,7 +151,7 @@ const getBestOfferPerRegionByEPC = (data: any): { [key: string]: { offer: string
   return regionOffers;
 };
 
-const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
+const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults, setShowChartModal }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -1011,7 +1012,15 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     <div className="w-full max-w-4xl">
       <Card className="bg-white overflow-hidden transition-all duration-300 ease-in-out">
         <CardContent className="p-4 flex flex-col" style={{ minHeight: '60px' }}>
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end mb-2 space-x-2">
+            {showResults && (
+              <button
+                onClick={() => setShowChartModal(true)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+              >
+                <BarChart2 className="w-5 h-5 text-gray-500" />
+              </button>
+            )}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <button
