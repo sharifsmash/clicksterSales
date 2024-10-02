@@ -17,6 +17,7 @@ import { Trash2 } from 'lucide-react'; // Import the trash icon
 import { RiRobot2Line } from "react-icons/ri";
 import { Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import offerRegionData from '../offerRegion.json';
 
 // Update the import statement
 interface OSData {
@@ -87,6 +88,8 @@ interface AggregatedData {
   avgCostPerClick?: number;
   avgROAS?: number;
   totalProfit?: number;
+  totalRevenue?: number;  // Add this line
+  totalCost?: number;     // Add this line
 }
 
 interface ResponseData {
@@ -621,6 +624,180 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
 
         setIsLoading(false);
       }, 2000); // 2-second delay
+    } else if (starter === "Best offer per Region based on EPC (Offer Region Data)") {
+      setIsLoading(true);
+      setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
+
+      setTimeout(() => {
+        const bestOffers = getBestOfferPerRegionByEPCFromOfferRegion();
+        let response = "Here are the best offers per region based on EPC (using Offer Region data):\n\n";
+
+        const offerSummary: { [key: string]: { region: string; epc: number; metrics: MetricsData }[] } = {};
+        const allOffers: MetricsData[] = [];
+        const offerAggregates: { [key: string]: { 
+          totalClicks: number, 
+          totalConversions: number, 
+          totalRevenue: number, 
+          totalCost: number, 
+          totalProfit: number, 
+          avgEPC: number, 
+          avgCPC: number, 
+          avgCR: number, 
+          avgROI: number,
+          avgPayout: number
+        } } = {};
+
+        // Create a map to store the best offer for each region
+        const bestOfferByRegion: { [key: string]: { offer: string; epc: number } } = {};
+
+        Object.entries(bestOffers).forEach(([region, offers]) => {
+          response += `<b>${region}</b>:\n`;
+          offers.forEach((offer, index) => {
+            response += `• ${index === 0 ? '🏆 ' : ''}${offer.offer} - $${formatNumber(offer.epc)} EPC\n`;
+            if (!offerAggregates[offer.offer]) {
+              offerAggregates[offer.offer] = { 
+                totalClicks: 0, totalConversions: 0, totalRevenue: 0, totalCost: 0, totalProfit: 0,
+                avgEPC: 0, avgCPC: 0, avgCR: 0, avgROI: 0, avgPayout: 0
+              };
+            }
+            if (!offerSummary[offer.offer]) {
+              offerSummary[offer.offer] = [];
+            }
+            offerSummary[offer.offer].push({ region, epc: offer.epc, metrics: offer.metrics });
+            offerAggregates[offer.offer].totalClicks += offer.metrics.clicks;
+            offerAggregates[offer.offer].totalConversions += offer.metrics.cvrs;
+            offerAggregates[offer.offer].totalRevenue += offer.metrics.revenue;
+            offerAggregates[offer.offer].totalCost += offer.metrics.spent;
+            offerAggregates[offer.offer].totalProfit += offer.metrics.profit;
+            allOffers.push(offer.metrics);
+
+            // Update the best offer for this region if necessary
+            if (!bestOfferByRegion[region] || offer.epc > bestOfferByRegion[region].epc) {
+              bestOfferByRegion[region] = { offer: offer.offer, epc: offer.epc };
+            }
+          });
+          response += '\n';
+        });
+
+        // Calculate averages for each offer
+        Object.keys(offerAggregates).forEach(offer => {
+          const agg = offerAggregates[offer];
+          const totalRegions = offerSummary[offer].length;
+          agg.avgEPC = agg.totalRevenue / agg.totalClicks;
+          agg.avgCPC = agg.totalCost / agg.totalClicks;
+          agg.avgCR = (agg.totalConversions / agg.totalClicks) * 100;
+          agg.avgROI = ((agg.totalRevenue - agg.totalCost) / agg.totalCost) * 100;
+          agg.avgPayout = agg.totalRevenue / agg.totalConversions;
+        });
+
+        // Add offer summary
+        response += "\n<b>Offer Summary:</b>\n\n";
+        Object.entries(offerAggregates).forEach(([offer, agg]) => {
+          response += `<b>${offer}</b>:\n`;
+          response += `• Total Clicks: ${formatNumber(agg.totalClicks)}\n`;
+          response += `• Total Conversions: ${formatNumber(agg.totalConversions)}\n`;
+          response += `• Total Revenue: $${formatNumber(agg.totalRevenue)}\n`;
+          response += `• Total Cost: $${formatNumber(agg.totalCost)}\n`;
+          response += `• Total Profit: $${formatNumber(agg.totalProfit)}\n`;
+          response += `• Avg. EPC: $${formatNumber(agg.avgEPC)}\n`;
+          response += `• Avg. CPC: $${formatNumber(agg.avgCPC)}\n`;
+          response += `• Avg. CR: ${formatNumber(agg.avgCR)}%\n`;
+          response += `• Avg. ROI: ${formatNumber(agg.avgROI)}%\n`;
+          response += `• Avg. Payout: $${formatNumber(agg.avgPayout)}\n\n`;
+        });
+
+        // Add summary of best regions for each offer
+        response += "\n<b>Summary of best regions for each offer:</b>\n\n";
+        Object.entries(offerSummary).forEach(([offer, regions]) => {
+          response += `<b>${offer}</b>:\n`;
+          Object.entries(bestOfferByRegion)
+            .filter(([_, bestOffer]) => bestOffer.offer === offer)
+            .forEach(([region, bestOffer]) => {
+              response += `• ${region} - $${formatNumber(bestOffer.epc)} EPC\n`;
+            });
+          response += '\n';
+        });
+
+        // Calculate aggregated data for all offers
+        const totalClicks = allOffers.reduce((sum, offer) => sum + offer.clicks, 0);
+        const totalConversions = allOffers.reduce((sum, offer) => sum + offer.cvrs, 0);
+        const totalRevenue = allOffers.reduce((sum, offer) => sum + offer.revenue, 0);
+        const totalCost = allOffers.reduce((sum, offer) => sum + offer.spent, 0);
+        const totalProfit = totalRevenue - totalCost;
+        const avgConversionRate = (totalConversions / totalClicks) * 100;
+        const avgClickThroughRate = allOffers.reduce((sum, offer) => sum + offer.ctr, 0) / allOffers.length;
+        const avgCostPerClick = totalCost / totalClicks;
+        const avgROAS = (totalRevenue / totalCost) * 100;
+        const avgPayout = totalRevenue / totalConversions;
+
+        // Add aggregated data to the response
+        response += "\n<b>Aggregated data for all offers:</b>\n\n";
+        response += `• Total Clicks: ${formatNumber(totalClicks)}\n`;
+        response += `• Total Conversions: ${formatNumber(totalConversions)}\n`;
+        response += `• Total Revenue: $${formatNumber(totalRevenue)}\n`;
+        response += `• Total Cost: $${formatNumber(totalCost)}\n`;
+        response += `• Total Profit: $${formatNumber(totalProfit)}\n`;
+        response += `• Avg. Conversion Rate: ${formatNumber(avgConversionRate)}%\n`;
+        response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%\n`;
+        response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
+        response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
+        response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
+
+        setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
+
+        // Generate card data
+        const cardData = Object.entries(bestOffers).map(([region, offers]) => {
+          const bestOffer = offers[0];
+          return {
+            title: `${region} - Best Offer: ${bestOffer.offer}`,
+            metrics: [
+              { label: 'EPC', value: formatNumber(bestOffer.epc) },
+              { label: 'Clicks', value: formatNumber(bestOffer.metrics.clicks) },
+              { label: 'Conversions', value: formatNumber(bestOffer.metrics.cvrs) },
+              { label: 'Revenue', value: formatNumber(bestOffer.metrics.revenue) },
+              { label: 'Spent', value: formatNumber(bestOffer.metrics.spent) },
+              { label: 'Profit', value: formatNumber(bestOffer.metrics.profit) },
+              { label: 'ROI', value: `${formatNumber(bestOffer.metrics.roi)}%` },
+            ],
+          };
+        });
+
+        // Update the chart data for the response
+        const chartData = Object.entries(bestOffers).map(([region, offers]) => ({
+          name: region,
+          value: offers[0].epc,
+          avgPayout: offers[0].metrics.avgPayout,
+        }));
+
+        onSearchComplete({
+          response,
+          aggregatedData: {
+            avgConversionRate,
+            avgClickThroughRate,
+            avgCostPerClick,
+            avgROAS,
+            avgPayout,
+            totalProfit,
+            totalRevenue,
+            totalCost,
+            clicks: totalClicks,
+            cvrs: totalConversions,
+            revenue: totalRevenue,
+            spent: totalCost,
+            profit: totalProfit,
+            conversionRate: avgConversionRate,
+            clickThroughRate: avgClickThroughRate,
+            costPerClick: avgCostPerClick,
+            roas: avgROAS,
+          },
+          campaignName: 'Offer Region Data',
+          dataType: 'regional',
+          chartData,
+          cardData,
+        }, formatNumber);
+
+        setIsLoading(false);
+      }, 2000);
     } else {
       handleSend();
     }
@@ -792,6 +969,43 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  const getBestOfferPerRegionByEPCFromOfferRegion = () => {
+    const bestOffers: { [key: string]: { offer: string; epc: number; metrics: MetricsData }[] } = {};
+
+    Object.entries(offerRegionData.by_offer).forEach(([offer, regions]) => {
+      regions.forEach((region: any) => {
+        if (!bestOffers[region.name]) {
+          bestOffers[region.name] = [];
+        }
+        bestOffers[region.name].push({
+          offer,
+          epc: parseFloat(region.epc.replace('$', '').trim()),
+          metrics: {
+            ...region,
+            clicks: parseInt(region.clicks),
+            offerClicks: parseInt(region.offerClicks),
+            cvrs: parseInt(region.cvrs.replace(',', '')),
+            ctr: parseFloat(region.ctr),
+            cr: parseFloat(region.cr),
+            revenue: parseFloat(region.revenue),
+            spent: parseFloat(region.spent),
+            profit: parseFloat(region.profit),
+            roi: parseFloat(region.roi),
+            cpc: parseFloat(region.cpc.replace('$', '').trim()),
+            avgPayout: parseFloat(region.avgPayout.replace('$', '').trim()),
+          }
+        });
+      });
+    });
+
+    // Sort offers for each region by EPC in descending order
+    Object.keys(bestOffers).forEach(region => {
+      bestOffers[region].sort((a, b) => b.epc - a.epc);
+    });
+
+    return bestOffers;
+  };
+
   return (
     <div className="w-full max-w-4xl">
       <Card className="bg-white overflow-hidden transition-all duration-300 ease-in-out">
@@ -874,6 +1088,12 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
                         Best Offer per Region (EPC)
                       </button>
                       <button
+                        onClick={() => handleConversationStarter("Best offer per Region based on EPC (Offer Region Data)")}
+                        className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 transition-colors duration-300"
+                      >
+                        Best Offer per Region (EPC) - Offer Region Data
+                      </button>
+                      <button
                         onClick={clearChat}
                         className="px-4 py-2 border border-gray-500 text-gray-500 rounded-md hover:bg-gray-50 transition-colors duration-300 flex items-center"
                       >
@@ -952,6 +1172,12 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete }) => {
           className="px-4 py-2 border border-green-500 text-green-500 rounded-md hover:bg-green-50 transition-colors duration-300"
         >
           Best Offer per Region (EPC)
+        </button>
+        <button
+          onClick={() => handleConversationStarter("Best offer per Region based on EPC (Offer Region Data)")}
+          className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 transition-colors duration-300"
+        >
+          Best Offer per Region (EPC) - Offer Region Data
         </button>
         <button
           onClick={clearChat}
