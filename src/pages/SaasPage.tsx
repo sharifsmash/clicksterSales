@@ -5,7 +5,7 @@ import MagicButton from '../components/MagicButton';
 import { TypeAnimation } from 'react-type-animation';
 import { DotPattern } from '../components/magicui/DotPattern';
 import AnimatedGridPattern from '../components/magicui/AnimatedGridPattern';
-import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign, FaPhone, FaRandom, FaChartBar, FaExchangeAlt } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUserAlt, FaComments, FaNewspaper, FaRobot, FaMouse, FaGlobe, FaClipboardList, FaBolt, FaBrain, FaSpider, FaMobileAlt, FaChartLine, FaGlobeAmericas, FaTools, FaImage, FaWrench, FaUsers, FaGavel, FaPauseCircle, FaBan, FaBell, FaPercent, FaMousePointer, FaDollarSign, FaPhone, FaRandom, FaChartBar, FaExchangeAlt, FaTrophy } from 'react-icons/fa';
 import DataChatApp from '../components/data-chat-app';
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import mockData from '../mockdata.json';
@@ -47,6 +47,8 @@ interface AggregatedData {
   avgCostPerClick?: number;
   avgROAS?: number;
   totalProfit?: number;
+  avgCPA?: number;
+  roi?: number;
 }
 
 interface ResponseData {
@@ -473,6 +475,8 @@ const SaasPage: React.FC = () => {
     avgPayout: number;
     avgClickThroughRate: number;
     totalProfit: number;
+    avgCPA: number;
+    roi: number;
   } | null>(null);
 
   const handleSearchComplete = (responseData: ResponseData, formatNumber: (num: number, isInteger?: boolean) => string) => {
@@ -491,20 +495,22 @@ const SaasPage: React.FC = () => {
       setChartData({
         campaignPerformance: formattedChartData,
         costValueDistribution: [
-          { name: 'CPA', value: responseData.aggregatedData.costPerClick * responseData.aggregatedData.conversionRate / 100 },
-          { name: 'AOV', value: responseData.aggregatedData.avgPayout }
+          { name: 'CPA', value: responseData.aggregatedData.avgCPA || 0 },
+          { name: 'AOV', value: responseData.aggregatedData.avgPayout || 0 }
         ]
       });
     }
 
     // Extract summary data from the response
     setSummaryData({
-      avgConversionRate: responseData.aggregatedData.avgConversionRate || responseData.aggregatedData.conversionRate,
-      avgCostPerClick: responseData.aggregatedData.avgCostPerClick || responseData.aggregatedData.costPerClick,
-      avgROAS: responseData.aggregatedData.avgROAS || responseData.aggregatedData.roas,
-      avgPayout: responseData.aggregatedData.avgPayout,
-      avgClickThroughRate: responseData.aggregatedData.avgClickThroughRate || responseData.aggregatedData.clickThroughRate,
-      totalProfit: responseData.aggregatedData.totalProfit || responseData.aggregatedData.profit,
+      avgConversionRate: responseData.aggregatedData.avgConversionRate || responseData.aggregatedData.conversionRate || 0,
+      avgCostPerClick: responseData.aggregatedData.avgCostPerClick || responseData.aggregatedData.costPerClick || 0,
+      avgROAS: responseData.aggregatedData.avgROAS || responseData.aggregatedData.roas || 0,
+      avgPayout: responseData.aggregatedData.avgPayout || 0,
+      avgClickThroughRate: responseData.aggregatedData.avgClickThroughRate || responseData.aggregatedData.clickThroughRate || 0,
+      totalProfit: responseData.aggregatedData.totalProfit || responseData.aggregatedData.profit || 0,
+      avgCPA: responseData.aggregatedData.avgCPA || 0,
+      roi: responseData.aggregatedData.roi || 0,
     });
 
     // Set the summary text
@@ -904,6 +910,28 @@ const SaasPage: React.FC = () => {
                           </div>
                         </CardContent>
                       </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Avg. CPA</p>
+                              <p className="text-2xl font-bold">${formatNumber(summaryData.avgCPA)}</p>
+                            </div>
+                            <FaUserAlt className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">ROI</p>
+                              <p className="text-2xl font-bold">{formatNumber(summaryData.roi)}%</p>
+                            </div>
+                            <FaTrophy className="text-2xl text-indigo-500" />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </>
                   )}
                 </div>
@@ -1004,6 +1032,28 @@ const SaasPage: React.FC = () => {
                           </p>
                         </div>
                         <FaChartLine className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Avg. CPA</p>
+                          <p className="text-2xl font-bold">${formatNumber(summaryData.avgCPA)}</p>
+                        </div>
+                        <FaUserAlt className="text-2xl text-indigo-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">ROI</p>
+                          <p className="text-2xl font-bold">{formatNumber(summaryData.roi)}%</p>
+                        </div>
+                        <FaTrophy className="text-2xl text-indigo-500" />
                       </div>
                     </CardContent>
                   </Card>

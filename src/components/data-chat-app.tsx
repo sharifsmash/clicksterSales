@@ -91,6 +91,8 @@ interface AggregatedData {
   totalProfit?: number;
   totalRevenue?: number;  // Add this line
   totalCost?: number;     // Add this line
+  avgCPA?: number;
+  roi?: number;
 }
 
 interface ResponseData {
@@ -183,13 +185,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         clickThroughRate: 0,
         costPerClick: 0,
         roas: 0,
-        avgPayout: 0
+        avgPayout: 0,
+        avgCPA: 0,
+        roi: 0
       };
     }
 
     const metrics = data.metrics;
     const revenue = metrics.revenue || 0;
     const spent = metrics.spent || 0;
+    const conversions = metrics.cvrs || 0;
     
     return {
       clicks: metrics.clicks || 0,
@@ -201,7 +206,9 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
       clickThroughRate: metrics.ctr || 0,
       costPerClick: metrics.cpc || 0,
       roas: spent > 0 ? (revenue / spent) * 100 : 0,
-      avgPayout: metrics.avgPayout || 0
+      avgPayout: metrics.avgPayout || 0,
+      avgCPA: conversions > 0 ? spent / conversions : 0,
+      roi: spent > 0 ? ((revenue - spent) / spent) * 100 : 0
     };
   };
 
@@ -421,6 +428,11 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
           const avgROAS = highROIRegions.reduce((sum, region) => sum + (region.revenue / region.spent * 100), 0) / highROIRegions.length;
           const avgPayout = highROIRegions.reduce((sum, region) => sum + region.avgPayout, 0) / highROIRegions.length;
           const avgClickThroughRate = highROIRegions.reduce((sum, region) => sum + region.ctr, 0) / highROIRegions.length;
+          const totalRevenue = highROIRegions.reduce((sum, region) => sum + region.revenue, 0);
+          const totalCost = highROIRegions.reduce((sum, region) => sum + region.spent, 0);
+          const totalConversions = highROIRegions.reduce((sum, region) => sum + region.cvrs, 0);
+          const avgCPA = totalCost / totalConversions;
+          const roi = ((totalRevenue - totalCost) / totalCost) * 100;
 
           response += `Total Profit for these regions: $${formatNumber(totalProfit)}\n\n`;
           response += `Averages for these regions:\n`;
@@ -428,7 +440,9 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
           response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
           response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
           response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
-          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
+          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%\n`;
+          response += `• Avg. CPA: $${formatNumber(avgCPA)}\n`;
+          response += `• ROI: ${formatNumber(roi)}%`;
 
           setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
           
@@ -448,9 +462,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
               avgPayout: avgPayout,
               profit: totalProfit,
               clicks: highROIRegions.reduce((sum, region) => sum + region.clicks, 0),
-              cvrs: highROIRegions.reduce((sum, region) => sum + region.cvrs, 0),
-              revenue: highROIRegions.reduce((sum, region) => sum + region.revenue, 0),
-              spent: highROIRegions.reduce((sum, region) => sum + region.spent, 0),
+              cvrs: totalConversions,
+              revenue: totalRevenue,
+              spent: totalCost,
+              avgCPA: avgCPA,
+              roi: roi,
+              avgConversionRate: avgConversionRate,
+              avgClickThroughRate: avgClickThroughRate,
+              avgCostPerClick: avgCostPerClick,
+              avgROAS: avgROAS,
+              totalProfit: totalProfit,
             },
             campaignName: 'Auto Insurance',
             dataType: 'regional',
@@ -477,6 +498,11 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
           const avgROAS = negativeROIRegions.reduce((sum, region) => sum + (region.revenue / region.spent * 100), 0) / negativeROIRegions.length;
           const avgPayout = negativeROIRegions.reduce((sum, region) => sum + region.avgPayout, 0) / negativeROIRegions.length;
           const avgClickThroughRate = negativeROIRegions.reduce((sum, region) => sum + region.ctr, 0) / negativeROIRegions.length;
+          const totalRevenue = negativeROIRegions.reduce((sum, region) => sum + region.revenue, 0);
+          const totalCost = negativeROIRegions.reduce((sum, region) => sum + region.spent, 0);
+          const totalConversions = negativeROIRegions.reduce((sum, region) => sum + region.cvrs, 0);
+          const avgCPA = totalCost / totalConversions;
+          const roi = ((totalRevenue - totalCost) / totalCost) * 100;
 
           response += `Total Profit for these regions: $${formatNumber(totalProfit)}\n\n`;
           response += `Averages for these regions:\n`;
@@ -484,7 +510,9 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
           response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
           response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
           response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
-          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%`;
+          response += `• Avg. Click-Through Rate: ${formatNumber(avgClickThroughRate)}%\n`;
+          response += `• Avg. CPA: $${formatNumber(avgCPA)}\n`;
+          response += `• ROI: ${formatNumber(roi)}%`;
 
           setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
           
@@ -504,9 +532,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
               avgPayout: avgPayout,
               profit: totalProfit,
               clicks: negativeROIRegions.reduce((sum, region) => sum + region.clicks, 0),
-              cvrs: negativeROIRegions.reduce((sum, region) => sum + region.cvrs, 0),
-              revenue: negativeROIRegions.reduce((sum, region) => sum + region.revenue, 0),
-              spent: negativeROIRegions.reduce((sum, region) => sum + region.spent, 0),
+              cvrs: totalConversions,
+              revenue: totalRevenue,
+              spent: totalCost,
+              avgCPA: avgCPA,
+              roi: roi,
+              avgConversionRate: avgConversionRate,
+              avgClickThroughRate: avgClickThroughRate,
+              avgCostPerClick: avgCostPerClick,
+              avgROAS: avgROAS,
+              totalProfit: totalProfit,
             },
             campaignName: 'Auto Insurance',
             dataType: 'regional',
@@ -520,7 +555,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
 
-      // Simulate AI thinking
       setTimeout(() => {
         const bestOffers = getBestOfferPerRegionByEPC(mockData);
         let response = "Here are the best offers per region based on EPC:\n\n";
@@ -531,25 +565,16 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         Object.entries(bestOffers).forEach(([region, offers]) => {
           response += `<b>${region}</b>:\n`;
           offers.forEach((offer, index) => {
-            response += `• ${index === 0 ? '🏆 ' : ''}${offer.offer} - $${formatNumber(offer.epc)} EPC\n`;
-            if (index === 0) { // Only consider the best offer for each region
+            const cpa = offer.metrics.spent / offer.metrics.cvrs;
+            const roi = ((offer.metrics.revenue - offer.metrics.spent) / offer.metrics.spent) * 100;
+            response += `• ${index === 0 ? '🏆 ' : ''}${offer.offer} - $${formatNumber(offer.epc)} EPC, CPA: $${formatNumber(cpa)}, ROI: ${formatNumber(roi)}%\n`;
+            if (index === 0) {
               if (!offerSummary[offer.offer]) {
                 offerSummary[offer.offer] = [];
               }
               offerSummary[offer.offer].push({ region, epc: offer.epc, metrics: offer.metrics });
             }
             allOffers.push(offer.metrics);
-          });
-          response += '\n';
-        });
-
-        // Add summary at the end of the response
-        response += "\n<b>Summary of best regions for each offer:</b>\n\n";
-        Object.entries(offerSummary).forEach(([offer, regions]) => {
-          response += `<b>${offer}</b>:\n`;
-          regions.sort((a, b) => b.epc - a.epc); // Sort regions by EPC in descending order
-          regions.forEach((region, index) => {
-            response += `${index === 0 ? '🏆 ' : ''}<b>${region.region}</b> - $${formatNumber(region.epc)} EPC\n`;
           });
           response += '\n';
         });
@@ -562,6 +587,11 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         const avgROAS = allOffers.reduce((sum, offer) => sum + (offer.revenue / offer.spent * 100), 0) / totalOffers;
         const avgPayout = allOffers.reduce((sum, offer) => sum + offer.avgPayout, 0) / totalOffers;
         const totalProfit = allOffers.reduce((sum, offer) => sum + offer.profit, 0);
+        const totalRevenue = allOffers.reduce((sum, offer) => sum + offer.revenue, 0);
+        const totalCost = allOffers.reduce((sum, offer) => sum + offer.spent, 0);
+        const totalConversions = allOffers.reduce((sum, offer) => sum + offer.cvrs, 0);
+        const avgCPA = totalCost / totalConversions;
+        const roi = ((totalRevenue - totalCost) / totalCost) * 100;
 
         // Add aggregated data to the response
         response += "\n<b>Aggregated data for all offers:</b>\n\n";
@@ -571,27 +601,12 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
         response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
         response += `• Total Profit: $${formatNumber(totalProfit)}\n`;
+        response += `• Avg. CPA: $${formatNumber(avgCPA)}\n`;
+        response += `• ROI: ${formatNumber(roi)}%\n`;
 
         setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
 
-        // Generate card data
-        const cardData = Object.entries(bestOffers).map(([region, offers]) => {
-          const bestOffer = offers[0];
-          return {
-            title: `${region} - Best Offer: ${bestOffer.offer}`,
-            metrics: [
-              { label: 'EPC', value: formatNumber(bestOffer.epc) },
-              { label: 'Clicks', value: formatNumber(bestOffer.metrics.clicks) },
-              { label: 'Conversions', value: formatNumber(bestOffer.metrics.cvrs) },
-              { label: 'Revenue', value: formatNumber(bestOffer.metrics.revenue) },
-              { label: 'Spent', value: formatNumber(bestOffer.metrics.spent) },
-              { label: 'Profit', value: formatNumber(bestOffer.metrics.profit) },
-              { label: 'ROI', value: `${formatNumber(bestOffer.metrics.roi)}%` },
-            ],
-          };
-        });
-
-        // Update the chart data for the response
+        // Generate chart data
         const chartData = Object.entries(bestOffers).map(([region, offers]) => ({
           name: region,
           value: offers[0].epc,
@@ -607,25 +622,27 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
             avgROAS,
             avgPayout,
             totalProfit,
-            // Add other required fields
+            totalRevenue,
+            totalCost,
             clicks: allOffers.reduce((sum, offer) => sum + offer.clicks, 0),
-            cvrs: allOffers.reduce((sum, offer) => sum + offer.cvrs, 0),
-            revenue: allOffers.reduce((sum, offer) => sum + offer.revenue, 0),
-            spent: allOffers.reduce((sum, offer) => sum + offer.spent, 0),
+            cvrs: totalConversions,
+            revenue: totalRevenue,
+            spent: totalCost,
             profit: totalProfit,
             conversionRate: avgConversionRate,
             clickThroughRate: avgClickThroughRate,
             costPerClick: avgCostPerClick,
             roas: avgROAS,
+            avgCPA,
+            roi,
           },
-          campaignName: 'Auto Insurance',
+          campaignName: 'Best Offer per Region (EPC)',
           dataType: 'regional',
           chartData,
-          cardData,
         }, formatNumber);
 
         setIsLoading(false);
-      }, 2000); // 2-second delay
+      }, 2000);
     } else if (starter === "Best offer per Region based on EPC (Offer Region Data)") {
       setIsLoading(true);
       setMessages(prev => [...prev, { text: starter, sender: 'user' as const }]);
@@ -731,6 +748,8 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         const avgCostPerClick = totalCost / totalClicks;
         const avgROAS = (totalRevenue / totalCost) * 100;
         const avgPayout = totalRevenue / totalConversions;
+        const avgCPA = totalCost / totalConversions;
+        const roi = ((totalRevenue - totalCost) / totalCost) * 100;
 
         // Add aggregated data to the response
         response += "\n<b>Aggregated data for all offers:</b>\n\n";
@@ -744,27 +763,12 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         response += `• Avg. Cost Per Click: $${formatNumber(avgCostPerClick)}\n`;
         response += `• Avg. ROAS: ${formatNumber(avgROAS)}%\n`;
         response += `• Avg. Payout: $${formatNumber(avgPayout)}\n`;
+        response += `• Avg. CPA: $${formatNumber(avgCPA)}\n`;
+        response += `• ROI: ${formatNumber(roi)}%\n`;
 
         setMessages(prev => [...prev, { text: response, sender: 'bot' as const }]);
 
-        // Generate card data
-        const cardData = Object.entries(bestOffers).map(([region, offers]) => {
-          const bestOffer = offers[0];
-          return {
-            title: `${region} - Best Offer: ${bestOffer.offer}`,
-            metrics: [
-              { label: 'EPC', value: formatNumber(bestOffer.epc) },
-              { label: 'Clicks', value: formatNumber(bestOffer.metrics.clicks) },
-              { label: 'Conversions', value: formatNumber(bestOffer.metrics.cvrs) },
-              { label: 'Revenue', value: formatNumber(bestOffer.metrics.revenue) },
-              { label: 'Spent', value: formatNumber(bestOffer.metrics.spent) },
-              { label: 'Profit', value: formatNumber(bestOffer.metrics.profit) },
-              { label: 'ROI', value: `${formatNumber(bestOffer.metrics.roi)}%` },
-            ],
-          };
-        });
-
-        // Update the chart data for the response
+        // Generate chart data
         const chartData = Object.entries(bestOffers).map(([region, offers]) => ({
           name: region,
           value: offers[0].epc,
@@ -774,14 +778,6 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
         onSearchComplete({
           response,
           aggregatedData: {
-            avgConversionRate,
-            avgClickThroughRate,
-            avgCostPerClick,
-            avgROAS,
-            avgPayout,
-            totalProfit,
-            totalRevenue,
-            totalCost,
             clicks: totalClicks,
             cvrs: totalConversions,
             revenue: totalRevenue,
@@ -791,11 +787,19 @@ const DataChatApp: React.FC<DataChatAppProps> = ({ onSearchComplete, showResults
             clickThroughRate: avgClickThroughRate,
             costPerClick: avgCostPerClick,
             roas: avgROAS,
+            avgPayout: avgPayout,
+            avgCPA: avgCPA,
+            roi: roi,
+            // Include these if they're used elsewhere
+            avgConversionRate: avgConversionRate,
+            avgClickThroughRate: avgClickThroughRate,
+            avgCostPerClick: avgCostPerClick,
+            avgROAS: avgROAS,
+            totalProfit: totalProfit,
           },
-          campaignName: 'Offer Region Data',
+          campaignName: 'Best Offer per Region (EPC) - Offer Region Data',
           dataType: 'regional',
           chartData,
-          cardData,
         }, formatNumber);
 
         setIsLoading(false);
